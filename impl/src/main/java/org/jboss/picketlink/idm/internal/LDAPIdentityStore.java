@@ -26,9 +26,14 @@ import static org.jboss.picketlink.idm.internal.ldap.LDAPConstants.MEMBER;
 import static org.jboss.picketlink.idm.internal.ldap.LDAPConstants.OBJECT_CLASS;
 import static org.jboss.picketlink.idm.internal.ldap.LDAPConstants.UID;
 
+import java.io.BufferedReader;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Properties;
+import java.util.StringTokenizer;
 
 import javax.naming.Context;
 import javax.naming.NameNotFoundException;
@@ -39,6 +44,7 @@ import javax.naming.directory.Attributes;
 import javax.naming.directory.BasicAttribute;
 import javax.naming.directory.BasicAttributes;
 import javax.naming.directory.DirContext;
+import javax.naming.directory.ModificationItem;
 import javax.naming.directory.SearchResult;
 import javax.naming.ldap.InitialLdapContext;
 
@@ -46,8 +52,11 @@ import org.jboss.picketlink.idm.internal.config.LDAPConfiguration;
 import org.jboss.picketlink.idm.internal.ldap.LDAPChangeNotificationHandler;
 import org.jboss.picketlink.idm.internal.ldap.LDAPGroup;
 import org.jboss.picketlink.idm.internal.ldap.LDAPObjectChangedNotification;
+import org.jboss.picketlink.idm.internal.ldap.ManagedAttributeLookup;
+import org.jboss.picketlink.idm.internal.ldap.LDAPObjectChangedNotification.NType;
 import org.jboss.picketlink.idm.internal.ldap.LDAPRole;
 import org.jboss.picketlink.idm.internal.ldap.LDAPUser;
+import org.jboss.picketlink.idm.internal.ldap.LDAPUserCustomAttributes;
 import org.jboss.picketlink.idm.model.Group;
 import org.jboss.picketlink.idm.model.Membership;
 import org.jboss.picketlink.idm.model.Role;
@@ -65,12 +74,14 @@ import org.jboss.picketlink.idm.spi.IdentityStore;
  * @author Shane Bryzak
  * @author Anil Saldhana
  */
-public class LDAPIdentityStore implements IdentityStore, LDAPChangeNotificationHandler {
+public class LDAPIdentityStore implements IdentityStore, LDAPChangeNotificationHandler, ManagedAttributeLookup {
     public final String COMMA = ",";
     public final String EQUAL = "=";
 
     protected DirContext ctx = null;
     protected String userDNSuffix, roleDNSuffix, groupDNSuffix;
+
+    protected List<String> standardAttributes = new ArrayList<String>();
 
     public LDAPIdentityStore() {
     }
@@ -114,6 +125,9 @@ public class LDAPIdentityStore implements IdentityStore, LDAPChangeNotificationH
             throw new RuntimeException(e1);
         }
 
+        // Load the standard attributes list
+        String fileName = configuration.getStandardAttributesFileName();
+        readStandardList(fileName);
     }
 
     @Override
@@ -139,9 +153,18 @@ public class LDAPIdentityStore implements IdentityStore, LDAPChangeNotificationH
         return user;
     }
 
+    @SuppressWarnings("unused")
     @Override
     public void removeUser(User user) {
         try {
+            // Look for custom attributes
+            LDAPUser ldapUser = (LDAPUser) getUser(user.getFullName());
+            String customDN = ldapUser.getCustomAttributes().getDN() + COMMA + ldapUser.getDN();
+            try {
+                LDAPUserCustomAttributes lca = (LDAPUserCustomAttributes) ctx.lookup(customDN);
+                ctx.destroySubcontext(customDN);
+            } catch (Exception ignore) {
+            }
             ctx.destroySubcontext(UID + "=" + user.getId() + COMMA + userDNSuffix);
         } catch (NamingException e) {
             throw new RuntimeException(e);
@@ -159,8 +182,23 @@ public class LDAPIdentityStore implements IdentityStore, LDAPChangeNotificationH
             while (answer.hasMore()) {
                 SearchResult sr = answer.next();
                 Attributes attributes = sr.getAttributes();
-                user = LDAPUser.create(attributes, userDNSuffix);
+                user = new LDAPUser();
+                user.setLookup(this);
+                user.setUserDNSuffix(userDNSuffix);
+                user.addAllLDAPAttributes(attributes);
+
                 user.setLDAPChangeNotificationHandler(this);
+
+                // Get the custom attributes
+                String customDN = user.getCustomAttributes().getDN() + COMMA + user.getDN();
+                try {
+                    LDAPUserCustomAttributes lca = (LDAPUserCustomAttributes) ctx.lookup(customDN);
+                    if (lca != null) {
+                        user.setCustomAttributes(lca);
+                    }
+                } catch (Exception ignore) {
+                }
+                break;
             }
         } catch (NamingException e) {
             throw new RuntimeException(e);
@@ -218,7 +256,9 @@ public class LDAPIdentityStore implements IdentityStore, LDAPChangeNotificationH
             while (answer.hasMore()) {
                 SearchResult sr = answer.next();
                 Attributes attributes = sr.getAttributes();
-                ldapGroup = LDAPGroup.create(attributes, groupDNSuffix);
+                ldapGroup = new LDAPGroup();
+                ldapGroup.setGroupDNSuffix(groupDNSuffix);
+                ldapGroup.addAllLDAPAttributes(attributes);
                 // Let us work out any parent groups for this group exist
                 Group parentGroup = parentGroup(ldapGroup);
                 if (parentGroup != null) {
@@ -268,7 +308,9 @@ public class LDAPIdentityStore implements IdentityStore, LDAPChangeNotificationH
             while (answer.hasMore()) {
                 SearchResult sr = answer.next();
                 Attributes attributes = sr.getAttributes();
-                ldapRole = LDAPRole.create(attributes, roleDNSuffix);
+                ldapRole = new LDAPRole();
+                ldapRole.setRoleDNSuffix(roleDNSuffix);
+                ldapRole.addAllLDAPAttributes(attributes);
                 ldapRole.setLDAPChangeNotificationHandler(this);
             }
         } catch (NamingException e) {
@@ -337,7 +379,11 @@ public class LDAPIdentityStore implements IdentityStore, LDAPChangeNotificationH
         } else {
             ldapUser = (LDAPUser) getUser(user.getFullName());
         }
-        ldapUser.setAttribute(name, values);
+        if (standardAttributes.contains(name)) {
+            ldapUser.setAttribute(name, values);
+        } else {
+            ldapUser.setCustomAttribute(name, values);
+        }
     }
 
     @Override
@@ -547,11 +593,56 @@ public class LDAPIdentityStore implements IdentityStore, LDAPChangeNotificationH
         DirContext object = notification.getLDAPObject();
         if (object instanceof LDAPUser) {
             LDAPUser user = (LDAPUser) object;
+            LDAPUserCustomAttributes ldapUserCustomAttributes = user.getCustomAttributes();
             try {
-                ctx.rebind(user.getDN(), object);
+                String userDN = user.getDN();
+                if (notification.getNtype() == NType.ADD_ATTRIBUTE) {
+                    Attribute attrib = notification.getAttribute();
+                    if (attrib == null)
+                        throw new RuntimeException("attrib is null");
+                    ModificationItem[] mods = new ModificationItem[] { new ModificationItem(DirContext.ADD_ATTRIBUTE, attrib) };
+                    ctx.modifyAttributes(user.getDN(), mods);
+                }
+                if (notification.getNtype() == NType.REMOVE_ATTRIBUTE) {
+                    Attribute attrib = notification.getAttribute();
+                    if (attrib == null)
+                        throw new RuntimeException("attrib is null");
+                    ModificationItem[] mods = new ModificationItem[] { new ModificationItem(DirContext.REMOVE_ATTRIBUTE, attrib) };
+                    ctx.modifyAttributes(user.getDN(), mods);
+                }
+                // ctx.rebind(userDN, object);
+                ctx.rebind(ldapUserCustomAttributes.getDN() + COMMA + userDN, ldapUserCustomAttributes);
             } catch (NamingException e) {
                 throw new RuntimeException(e);
             }
         }
+    }
+
+    private void readStandardList(String fileName) {
+        try {
+            InputStream is = getClass().getClassLoader().getResourceAsStream(fileName);
+            BufferedReader br = new BufferedReader(new InputStreamReader(is));
+            String strLine;
+            // Read File Line By Line
+            while ((strLine = br.readLine()) != null) {
+                addTokens(strLine);
+            }
+            // Close the input stream
+            is.close();
+        } catch (Exception e) {// Catch exception if any
+            System.err.println("Error: " + e.getMessage());
+        }
+    }
+
+    private void addTokens(String line) {
+        StringTokenizer st = new StringTokenizer(line, ",");
+        while (st.hasMoreTokens()) {
+            this.standardAttributes.add(st.nextToken());
+        }
+    }
+
+    @Override
+    public boolean isManaged(String attributeName) {
+        return standardAttributes.contains(attributeName);
     }
 }

@@ -25,9 +25,6 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 
-import java.util.HashMap;
-import java.util.Map;
-
 import org.jboss.picketlink.idm.internal.LDAPIdentityStore;
 import org.jboss.picketlink.idm.internal.config.LDAPConfiguration;
 import org.jboss.picketlink.idm.internal.config.LDAPConfigurationBuilder;
@@ -66,16 +63,8 @@ public class LDAPIdentityStoreTestCase extends AbstractLDAPTest {
     @Test
     public void testLDAPIdentityStore() throws Exception {
         LDAPIdentityStore store = new LDAPIdentityStore();
-        Map<String, String> config = new HashMap<String, String>();
-        config.put("userDNSuffix", "ou=People,dc=jboss,dc=org");
-        config.put("roleDNSuffix", "ou=Roles,dc=jboss,dc=org");
-        config.put("groupDNSuffix", "ou=Groups,dc=jboss,dc=org");
-        config.put("url", "ldap://localhost:10389");
-        config.put("bindDN", adminDN);
-        config.put("password", adminPW);
 
         store.setConfiguration(getConfiguration());
-        // store.config(config);
 
         // Users
         User user = store.createUser("Anil Saldhana");

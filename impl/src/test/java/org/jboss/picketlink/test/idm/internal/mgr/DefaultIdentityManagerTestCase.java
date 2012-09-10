@@ -19,7 +19,7 @@
  * Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
  * 02110-1301 USA, or see the FSF site: http://www.fsf.org.
  */
-package org.jboss.picketlink.test.idm.internal;
+package org.jboss.picketlink.test.idm.internal.mgr;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
@@ -31,50 +31,45 @@ import java.security.cert.CertificateFactory;
 import java.security.cert.X509Certificate;
 import java.util.Map;
 
+import org.jboss.picketlink.idm.internal.DefaultIdentityManager;
 import org.jboss.picketlink.idm.internal.LDAPIdentityStore;
 import org.jboss.picketlink.idm.internal.config.LDAPConfiguration;
 import org.jboss.picketlink.idm.internal.config.LDAPConfigurationBuilder;
-import org.jboss.picketlink.idm.internal.ldap.LDAPUser;
 import org.jboss.picketlink.idm.internal.util.Base64;
 import org.jboss.picketlink.idm.model.User;
+import org.jboss.picketlink.idm.spi.IdentityStoreConfigurationBuilder;
 import org.junit.Before;
 import org.junit.Test;
 import org.picketbox.test.ldap.AbstractLDAPTest;
 
 /**
- * Unit test the {@link LDAPUser} construct
+ * Unit test the {@link DefaultIdentityManager}
  *
  * @author anil saldhana
- * @since Sep 4, 2012
+ * @since Sep 6, 2012
  */
-public class LDAPUserTestCase extends AbstractLDAPTest {
+public class DefaultIdentityManagerTestCase extends AbstractLDAPTest {
+
     @Before
     public void setup() throws Exception {
         super.setup();
         importLDIF("ldap/users.ldif");
     }
 
-    private LDAPConfiguration getConfiguration() {
-        LDAPConfigurationBuilder builder = new LDAPConfigurationBuilder();
-        LDAPConfiguration config = (LDAPConfiguration) builder.build();
-
-        config.setBindDN(adminDN).setBindCredential(adminPW).setLdapURL("ldap://localhost:10389");
-        config.setUserDNSuffix("ou=People,dc=jboss,dc=org").setRoleDNSuffix("ou=Roles,dc=jboss,dc=org");
-        config.setGroupDNSuffix("ou=Groups,dc=jboss,dc=org");
-        return config;
-    }
-
     @Test
-    public void testLDAPIdentityStore() throws Exception {
-        LDAPIdentityStore store = new LDAPIdentityStore();
+    public void testDefaultIdentityManager() throws Exception {
 
+        LDAPIdentityStore store = new LDAPIdentityStore();
         store.setConfiguration(getConfiguration());
 
+        DefaultIdentityManager im = new DefaultIdentityManager();
+        im.setIdentityStore(store); // TODO: wiring needs a second look
+
         // Let us create an user
-        User user = store.createUser("Anil Saldhana");
+        User user = im.createUser("Anil Saldhana");
         assertNotNull(user);
 
-        User anil = store.getUser("Anil Saldhana");
+        User anil = im.getUser("Anil Saldhana");
         assertNotNull(anil);
         assertEquals("Anil Saldhana", anil.getFullName());
         assertEquals("Anil", anil.getFirstName());
@@ -99,7 +94,8 @@ public class LDAPUserTestCase extends AbstractLDAPTest {
         anil.setAttribute("x509", encodedCert);
 
         // let us retrieve the attributes from ldap store and see if they are the same
-        Map<String, String[]> attributes = store.getAttributes(anil);
+        anil = im.getUser("Anil Saldhana");
+        Map<String, String[]> attributes = anil.getAttributes();
         assertNotNull(attributes);
 
         assertEquals("2", attributes.get("QuestionTotal")[0]);
@@ -114,8 +110,19 @@ public class LDAPUserTestCase extends AbstractLDAPTest {
         cert = (X509Certificate) cf.generateCertificate(new ByteArrayInputStream(certBytes));
         assertNotNull(cert);
 
-        store.removeUser(anil);
-        anil = store.getUser("Anil Saldhana");
+        im.removeUser(anil);
+        anil = im.getUser("Anil Saldhana");
         assertNull(anil);
+
+    }
+
+    private LDAPConfiguration getConfiguration() {
+        String fqn = LDAPConfigurationBuilder.class.getName();
+        LDAPConfiguration config = (LDAPConfiguration) IdentityStoreConfigurationBuilder.config(fqn);
+
+        config.setBindDN(adminDN).setBindCredential(adminPW).setLdapURL("ldap://localhost:10389");
+        config.setUserDNSuffix("ou=People,dc=jboss,dc=org").setRoleDNSuffix("ou=Roles,dc=jboss,dc=org");
+        config.setGroupDNSuffix("ou=Groups,dc=jboss,dc=org");
+        return config;
     }
 }

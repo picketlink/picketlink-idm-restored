@@ -28,11 +28,17 @@ import static org.jboss.picketlink.idm.internal.ldap.LDAPConstants.OBJECT_CLASS;
 import static org.jboss.picketlink.idm.internal.ldap.LDAPConstants.SN;
 import static org.jboss.picketlink.idm.internal.ldap.LDAPConstants.UID;
 
+import java.util.Map;
+import java.util.Set;
+
+import javax.naming.NamingEnumeration;
 import javax.naming.NamingException;
 import javax.naming.directory.Attribute;
 import javax.naming.directory.Attributes;
 import javax.naming.directory.BasicAttribute;
+import javax.naming.directory.BasicAttributes;
 
+import org.jboss.picketlink.idm.internal.ldap.LDAPObjectChangedNotification.NType;
 import org.jboss.picketlink.idm.model.User;
 
 /**
@@ -45,14 +51,103 @@ public class LDAPUser extends DirContextAdaptor implements User {
 
     protected String userid, firstName, lastName, fullName, email, userDNSuffix;
 
+    protected LDAPUserCustomAttributes customAttributes = new LDAPUserCustomAttributes();
+
+    protected ManagedAttributeLookup lookup;
+
     public LDAPUser() {
         Attribute oc = new BasicAttribute(OBJECT_CLASS);
         oc.add("inetOrgPerson");
         oc.add("organizationalPerson");
         oc.add("person");
         oc.add("top");
+        oc.add("extensibleObject");
 
         attributes.put(oc);
+    }
+
+    public ManagedAttributeLookup getLookup() {
+        return lookup;
+    }
+
+    public void setLookup(ManagedAttributeLookup lookup) {
+        this.lookup = lookup;
+    }
+
+    @SuppressWarnings("rawtypes")
+    @Override
+    public Attributes getAttributes(String name) throws NamingException {
+        Attributes collectiveAttributes = new BasicAttributes(true);
+        NamingEnumeration ne = attributes.getAll();
+        while (ne.hasMore()) {
+            collectiveAttributes.put((Attribute) ne.next());
+        }
+        Map<String, Object> custom = customAttributes.getAttributes();
+        Set<String> keys = custom.keySet();
+        for (String key : keys) {
+            Object value = custom.get(key);
+            collectiveAttributes.put(key, value);
+        }
+        return collectiveAttributes;
+    }
+
+    @Override
+    public Map<String, String[]> getAttributes() {
+        Map<String, String[]> map = super.getAttributes();
+        Map<String, Object> values = customAttributes.getAttributes();
+        Set<String> keys = values.keySet();
+        for (String key : keys) {
+            Object value = values.get(key);
+            if (value instanceof String[]) {
+                map.put(key, (String[]) value);
+            } else if (value instanceof String) {
+                String[] arr = new String[] { (String) value };
+                map.put(key, arr);
+            }
+        }
+        return map;
+    }
+
+    @Override
+    public void setAttribute(String name, String value) {
+        if (lookup.isManaged(name)) {
+            super.setAttribute(name, value);
+        } else {
+            setCustomAttribute(name, value);
+        }
+    }
+
+    @Override
+    public void setAttribute(String name, String[] values) {
+        if (lookup.isManaged(name)) {
+            super.setAttribute(name, values);
+        } else {
+            setCustomAttribute(name, values);
+        }
+    }
+
+    public void setCustomAttribute(String name, String value) {
+        // Add into the custom attributes also
+        customAttributes.addAttribute(name, value);
+        if (handler != null) {
+            handler.handle(new LDAPObjectChangedNotification(this, NType.CUSTOM_ATTRIBUTE, null));
+        }
+    }
+
+    public void setCustomAttribute(String name, String[] values) {
+        // Add into the custom attributes also
+        customAttributes.addAttribute(name, values);
+        if (handler != null) {
+            handler.handle(new LDAPObjectChangedNotification(this, NType.CUSTOM_ATTRIBUTE, null));
+        }
+    }
+
+    public LDAPUserCustomAttributes getCustomAttributes() {
+        return customAttributes;
+    }
+
+    public void setCustomAttributes(LDAPUserCustomAttributes customAttributes) {
+        this.customAttributes = customAttributes;
     }
 
     public void setUserDNSuffix(String udn) {
@@ -60,6 +155,13 @@ public class LDAPUser extends DirContextAdaptor implements User {
     }
 
     public String getDN() {
+        try {
+            if (userid == null) {
+                userid = (String) attributes.get(UID).get();
+            }
+        } catch (NamingException e) {
+            throw new RuntimeException(e);
+        }
         return UID + EQUAL + userid + COMMA + userDNSuffix;
     }
 
@@ -187,30 +289,5 @@ public class LDAPUser extends DirContextAdaptor implements User {
         } else {
             theAttribute.set(0, email);
         }
-    }
-
-    public static LDAPUser create(Attributes attributes, String userDNSuffix) {
-        LDAPUser user = new LDAPUser();
-        user.setUserDNSuffix(userDNSuffix);
-
-        try {
-            // Get the UID
-            Attribute uid = attributes.get(UID);
-            user.setId((String) uid.get());
-
-            // Get the common name
-            Attribute cn = attributes.get(CN);
-            user.setFullName((String) cn.get());
-
-            // Get the first name
-            Attribute fn = attributes.get(GIVENNAME);
-            user.setFirstName((String) fn.get());
-
-            Attribute sn = attributes.get(SN);
-            user.setLastName((String) sn.get());
-        } catch (NamingException e) {
-            throw new RuntimeException(e);
-        }
-        return user;
     }
 }

@@ -1,0 +1,13 @@
+c,countryName,cn,commonName,dc,domainComponent,facsimileTelephoneNumber,
+co,friendlyCountryName,gn,givenName,homePhone,homeTelephoneNumber,jpegPhoto,
+l,localityName,mail,rfc822Mailbox,
+mobile,mobileTelephoneNumber, 	
+o,organizationName, 
+ou,organisationalUnitName,owner , 
+pager, pagerTelephoneNumber,postalAddress, 	 
+postalCode, 
+sn,surname, 
+st,stateOrProvinceName , 
+street,streetAddress, 
+telephoneNumber, 
+userPassword,uid,userid

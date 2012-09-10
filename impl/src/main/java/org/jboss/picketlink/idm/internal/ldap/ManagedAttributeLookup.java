@@ -21,42 +21,21 @@
  */
 package org.jboss.picketlink.idm.internal.ldap;
 
-import javax.naming.directory.Attribute;
-import javax.naming.directory.DirContext;
-
 /**
- * Indicates that an LDAP Object has changed
+ * Interface to indicate whether an attribute is managed. Typically all LDAP standard attributes are managed. But if the LDAP
+ * server is fitted with custom schemas, then those attributes become managed.
+ *
+ * It is left to the integrating application to indicate which attributes are managed, via this interface.
  *
  * @author anil saldhana
- * @since Sep 4, 2012
+ * @since Sep 7, 2012
  */
-public class LDAPObjectChangedNotification {
-    private DirContext object;
-    private NType ntype;
-    private Attribute attribute;
-
+public interface ManagedAttributeLookup {
     /**
-     * Notification Type
+     * Indicate whether an attribute is standard
+     *
+     * @param attributeName
+     * @return
      */
-    public enum NType {
-        ADD_ATTRIBUTE, REMOVE_ATTRIBUTE, CUSTOM_ATTRIBUTE
-    };
-
-    public LDAPObjectChangedNotification(DirContext ldapObject, NType nt, Attribute attribute) {
-        this.object = ldapObject;
-        this.ntype = nt;
-        this.attribute = attribute;
-    }
-
-    public DirContext getLDAPObject() {
-        return object;
-    }
-
-    public NType getNtype() {
-        return ntype;
-    }
-
-    public Attribute getAttribute() {
-        return attribute;
-    }
+    boolean isManaged(String attributeName);
 }
