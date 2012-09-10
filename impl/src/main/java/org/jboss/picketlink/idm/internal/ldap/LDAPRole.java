@@ -27,7 +27,6 @@ import static org.jboss.picketlink.idm.internal.ldap.LDAPConstants.OBJECT_CLASS;
 
 import javax.naming.NamingException;
 import javax.naming.directory.Attribute;
-import javax.naming.directory.Attributes;
 import javax.naming.directory.BasicAttribute;
 
 import org.jboss.picketlink.idm.model.Role;
@@ -70,6 +69,15 @@ public class LDAPRole extends DirContextAdaptor implements Role {
 
     @Override
     public String getName() {
+        if (roleName == null) {
+            Attribute cnAttribute = attributes.get(CN);
+            if (cnAttribute != null) {
+                try {
+                    roleName = (String) cnAttribute.get();
+                } catch (NamingException ignore) {
+                }
+            }
+        }
         return roleName;
     }
 
@@ -94,19 +102,5 @@ public class LDAPRole extends DirContextAdaptor implements Role {
         if (memberAttribute != null) {
             memberAttribute.remove(user.getDN());
         }
-    }
-
-    public static LDAPRole create(Attributes attributes, String roleDNSuffix) {
-        LDAPRole role = new LDAPRole();
-        role.setRoleDNSuffix(roleDNSuffix);
-
-        try {
-            // Get the common name
-            Attribute cn = attributes.get(CN);
-            role.setName((String) cn.get());
-        } catch (NamingException e) {
-            throw new RuntimeException(e);
-        }
-        return role;
     }
 }

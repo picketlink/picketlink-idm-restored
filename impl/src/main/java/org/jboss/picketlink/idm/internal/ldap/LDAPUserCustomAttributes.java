@@ -21,42 +21,31 @@
  */
 package org.jboss.picketlink.idm.internal.ldap;
 
-import javax.naming.directory.Attribute;
-import javax.naming.directory.DirContext;
+import java.io.Serializable;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.Map;
 
 /**
- * Indicates that an LDAP Object has changed
+ * Attributes of an {@link LDAPUser} that does not map to LDAP managed attributes
  *
  * @author anil saldhana
- * @since Sep 4, 2012
+ * @since Sep 7, 2012
  */
-public class LDAPObjectChangedNotification {
-    private DirContext object;
-    private NType ntype;
-    private Attribute attribute;
+public class LDAPUserCustomAttributes implements Serializable {
+    private static final long serialVersionUID = 1L;
 
-    /**
-     * Notification Type
-     */
-    public enum NType {
-        ADD_ATTRIBUTE, REMOVE_ATTRIBUTE, CUSTOM_ATTRIBUTE
-    };
+    private Map<String, Object> attributes = new HashMap<String, Object>();
 
-    public LDAPObjectChangedNotification(DirContext ldapObject, NType nt, Attribute attribute) {
-        this.object = ldapObject;
-        this.ntype = nt;
-        this.attribute = attribute;
+    public void addAttribute(String key, Object value) {
+        attributes.put(key, value);
     }
 
-    public DirContext getLDAPObject() {
-        return object;
+    public Map<String, Object> getAttributes() {
+        return Collections.unmodifiableMap(attributes);
     }
 
-    public NType getNtype() {
-        return ntype;
-    }
-
-    public Attribute getAttribute() {
-        return attribute;
+    public String getDN() {
+        return "cn=custom-attributes";
     }
 }

@@ -44,6 +44,7 @@ import javax.naming.directory.ModificationItem;
 import javax.naming.directory.SearchControls;
 import javax.naming.directory.SearchResult;
 
+import org.jboss.picketlink.idm.internal.ldap.LDAPObjectChangedNotification.NType;
 import org.jboss.picketlink.idm.model.IdentityType;
 
 /**
@@ -60,6 +61,20 @@ public class DirContextAdaptor implements DirContext, IdentityType {
     protected Attributes attributes = new BasicAttributes(true);
 
     protected LDAPChangeNotificationHandler handler = null;
+
+    public void addAllLDAPAttributes(Attributes theAttributes) {
+        if (theAttributes != null) {
+            NamingEnumeration<? extends Attribute> ne = theAttributes.getAll();
+            try {
+                while (ne.hasMore()) {
+                    Attribute att = ne.next();
+                    attributes.put(att);
+                }
+            } catch (NamingException e) {
+                throw new RuntimeException(e);
+            }
+        }
+    }
 
     @Override
     public Object lookup(Name name) throws NamingException {
@@ -358,24 +373,27 @@ public class DirContextAdaptor implements DirContext, IdentityType {
     @Override
     public void setAttribute(String name, String value) {
         attributes.put(name, value);
+        Attribute anAttribute = attributes.get(name);
         if (handler != null) {
-            handler.handle(new LDAPObjectChangedNotification(this));
+            handler.handle(new LDAPObjectChangedNotification(this, NType.ADD_ATTRIBUTE, anAttribute));
         }
     }
 
     @Override
     public void setAttribute(String name, String[] values) {
         attributes.put(name, values);
+        Attribute anAttribute = attributes.get(name);
         if (handler != null) {
-            handler.handle(new LDAPObjectChangedNotification(this));
+            handler.handle(new LDAPObjectChangedNotification(this, NType.ADD_ATTRIBUTE, anAttribute));
         }
     }
 
     @Override
     public void removeAttribute(String name) {
+        Attribute anAttribute = attributes.get(name);
         attributes.remove(name);
         if (handler != null) {
-            handler.handle(new LDAPObjectChangedNotification(this));
+            handler.handle(new LDAPObjectChangedNotification(this, NType.REMOVE_ATTRIBUTE, anAttribute));
         }
     }
 
