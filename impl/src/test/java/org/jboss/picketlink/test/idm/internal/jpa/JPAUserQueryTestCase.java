@@ -74,7 +74,7 @@ public class JPAUserQueryTestCase extends AbstractJPAIdentityStoreTestCase {
         List<User> result = identityStore.executeQuery(createFindByNameQuery(), null);
         
         assertFalse(result.isEmpty());
-        assertEquals(USER_USERNAME, result.get(0).getKey());
+        assertEquals(USER_USERNAME + 1, result.get(0).getKey());
     }
 
     /**
@@ -91,7 +91,7 @@ public class JPAUserQueryTestCase extends AbstractJPAIdentityStoreTestCase {
         List<User> result = identityStore.executeQuery(createFindByFirstNameQuery(), null);
         
         assertFalse(result.isEmpty());
-        assertEquals(USER_FIRST_NAME, result.get(0).getFirstName());
+        assertEquals(USER_FIRST_NAME + 1, result.get(0).getFirstName());
     }
 
     /**
@@ -108,7 +108,7 @@ public class JPAUserQueryTestCase extends AbstractJPAIdentityStoreTestCase {
         List<User> result = identityStore.executeQuery(createFindByLastNameQuery(), null);
         
         assertFalse(result.isEmpty());
-        assertEquals(USER_LAST_NAME, result.get(0).getLastName());
+        assertEquals(USER_LAST_NAME + 1, result.get(0).getLastName());
     }
 
     /**
@@ -125,7 +125,7 @@ public class JPAUserQueryTestCase extends AbstractJPAIdentityStoreTestCase {
         List<User> result = identityStore.executeQuery(createFindByEmailQuery(), null);
         
         assertFalse(result.isEmpty());
-        assertEquals(USER_EMAIL, result.get(0).getEmail());
+        assertEquals(USER_EMAIL + 1, result.get(0).getEmail());
     }
     
     /**
@@ -142,7 +142,7 @@ public class JPAUserQueryTestCase extends AbstractJPAIdentityStoreTestCase {
         List<User> result = identityStore.executeQuery(createFindByRole(), null);
         
         assertFalse(result.isEmpty());
-        assertEquals(USER_USERNAME, result.get(0).getKey());
+        assertEquals(USER_USERNAME + 1, result.get(0).getKey());
     }
 
     /**
@@ -159,7 +159,7 @@ public class JPAUserQueryTestCase extends AbstractJPAIdentityStoreTestCase {
         List<User> result = identityStore.executeQuery(createFindByGroup(), null);
         
         assertFalse(result.isEmpty());
-        assertEquals(USER_USERNAME, result.get(0).getKey());
+        assertEquals(USER_USERNAME + 1, result.get(0).getKey());
     }
 
 
@@ -177,7 +177,7 @@ public class JPAUserQueryTestCase extends AbstractJPAIdentityStoreTestCase {
         List<User> result = identityStore.executeQuery(createFindByAttributes(), null);
         
         assertFalse(result.isEmpty());
-        assertEquals(USER_USERNAME, result.get(0).getKey());
+        assertEquals(10, result.size());
     }
 
     /**
@@ -186,34 +186,38 @@ public class JPAUserQueryTestCase extends AbstractJPAIdentityStoreTestCase {
     private void loadUsers() {
         IdentityStore identityStore = createIdentityStore();
 
-        this.user = identityStore.getUser(USER_USERNAME);
+        this.user = identityStore.getUser(USER_USERNAME + 1);
         
         if (this.user != null) {
             return;
         }
         
-        this.user = identityStore.createUser(USER_USERNAME);
+        for (int i = 0; i < 10; i++) {
+            int index = i + 1;
+            
+            this.user = identityStore.createUser(USER_USERNAME + index);
 
-        user.setEmail(USER_EMAIL);
-        user.setFirstName(USER_FIRST_NAME);
-        user.setLastName(USER_LAST_NAME);
-        
-        Role role = identityStore.createRole("admin");
-        Group group = identityStore.createGroup("Administrators", null);
+            user.setEmail(USER_EMAIL + index);
+            user.setFirstName(USER_FIRST_NAME + index);
+            user.setLastName(USER_LAST_NAME + index);
+            
+            Role role = identityStore.createRole("admin" + index);
+            Group group = identityStore.createGroup("Administrators" + index, null);
 
-        identityStore.createMembership(role, user, group);
-        
-        this.user.setAttribute("attribute1", "attributeValue1");
-        this.user.setAttribute("attribute1", "attributeValue12");
-        this.user.setAttribute("attribute1", "attributeValue123");
-        
-        this.user.setAttribute("attribute2", "attributeValue2");
+            identityStore.createMembership(role, user, group);
+            
+            this.user.setAttribute("attribute1", "attributeValue1");
+            this.user.setAttribute("attribute1", "attributeValue12");
+            this.user.setAttribute("attribute1", "attributeValue123");
+            
+            this.user.setAttribute("attribute2", "attributeValue2");
+        }
     }
 
     private UserQuery createFindByNameQuery() {
         UserQuery query = new DefaultUserQuery();
         
-        query.setName(USER_USERNAME);
+        query.setName(USER_USERNAME + 1);
         
         return query;
     }
@@ -221,7 +225,7 @@ public class JPAUserQueryTestCase extends AbstractJPAIdentityStoreTestCase {
     private UserQuery createFindByFirstNameQuery() {
         UserQuery query = new DefaultUserQuery();
         
-        query.setFirstName(USER_FIRST_NAME);
+        query.setFirstName(USER_FIRST_NAME + 1);
         
         return query;
     }
@@ -229,7 +233,7 @@ public class JPAUserQueryTestCase extends AbstractJPAIdentityStoreTestCase {
     private UserQuery createFindByLastNameQuery() {
         UserQuery query = new DefaultUserQuery();
         
-        query.setLastName(USER_LAST_NAME);
+        query.setLastName(USER_LAST_NAME + 1);
         
         return query;
     }
@@ -237,7 +241,7 @@ public class JPAUserQueryTestCase extends AbstractJPAIdentityStoreTestCase {
     private UserQuery createFindByRole() {
         UserQuery query = new DefaultUserQuery();
         
-        query.setRole("admin");
+        query.setRole("admin" + 1);
         
         return query;
     }
@@ -245,7 +249,7 @@ public class JPAUserQueryTestCase extends AbstractJPAIdentityStoreTestCase {
     private UserQuery createFindByGroup() {
         UserQuery query = new DefaultUserQuery();
         
-        query.setRelatedGroup("Administrators");
+        query.setRelatedGroup("Administrators" + 1);
         
         return query;
     }
@@ -262,7 +266,7 @@ public class JPAUserQueryTestCase extends AbstractJPAIdentityStoreTestCase {
     private UserQuery createFindByEmailQuery() {
         UserQuery query = new DefaultUserQuery();
         
-        query.setEmail(USER_EMAIL);
+        query.setEmail(USER_EMAIL + 1);
         
         return query;
     }

@@ -186,7 +186,8 @@ public class JPAIdentityStore implements IdentityStore {
                 Root<DatabaseUser> user = criteriaQuery.from(DatabaseUser.class);
 
                 user.alias("resultClass");
-
+                criteriaQuery.distinct(true);
+                
                 List<Predicate> predicates = new ArrayList<Predicate>();
 
                 // predicates for some basic informations
