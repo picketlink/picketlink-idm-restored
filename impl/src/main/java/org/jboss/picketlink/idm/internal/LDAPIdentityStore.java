@@ -26,14 +26,10 @@ import static org.jboss.picketlink.idm.internal.ldap.LDAPConstants.MEMBER;
 import static org.jboss.picketlink.idm.internal.ldap.LDAPConstants.OBJECT_CLASS;
 import static org.jboss.picketlink.idm.internal.ldap.LDAPConstants.UID;
 
-import java.io.BufferedReader;
-import java.io.InputStream;
-import java.io.InputStreamReader;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Properties;
-import java.util.StringTokenizer;
 
 import javax.naming.Context;
 import javax.naming.NameNotFoundException;
@@ -52,11 +48,11 @@ import org.jboss.picketlink.idm.internal.config.LDAPConfiguration;
 import org.jboss.picketlink.idm.internal.ldap.LDAPChangeNotificationHandler;
 import org.jboss.picketlink.idm.internal.ldap.LDAPGroup;
 import org.jboss.picketlink.idm.internal.ldap.LDAPObjectChangedNotification;
-import org.jboss.picketlink.idm.internal.ldap.ManagedAttributeLookup;
 import org.jboss.picketlink.idm.internal.ldap.LDAPObjectChangedNotification.NType;
 import org.jboss.picketlink.idm.internal.ldap.LDAPRole;
 import org.jboss.picketlink.idm.internal.ldap.LDAPUser;
 import org.jboss.picketlink.idm.internal.ldap.LDAPUserCustomAttributes;
+import org.jboss.picketlink.idm.internal.ldap.ManagedAttributeLookup;
 import org.jboss.picketlink.idm.model.Group;
 import org.jboss.picketlink.idm.model.Membership;
 import org.jboss.picketlink.idm.model.Role;
@@ -81,7 +77,7 @@ public class LDAPIdentityStore implements IdentityStore, LDAPChangeNotificationH
     protected DirContext ctx = null;
     protected String userDNSuffix, roleDNSuffix, groupDNSuffix;
 
-    protected List<String> standardAttributes = new ArrayList<String>();
+    protected List<String> managedAttributes = new ArrayList<String>();
 
     public LDAPIdentityStore() {
     }
@@ -124,10 +120,6 @@ public class LDAPIdentityStore implements IdentityStore, LDAPChangeNotificationH
         } catch (NamingException e1) {
             throw new RuntimeException(e1);
         }
-
-        // Load the standard attributes list
-        String fileName = configuration.getStandardAttributesFileName();
-        readStandardList(fileName);
     }
 
     @Override
@@ -379,7 +371,7 @@ public class LDAPIdentityStore implements IdentityStore, LDAPChangeNotificationH
         } else {
             ldapUser = (LDAPUser) getUser(user.getFullName());
         }
-        if (standardAttributes.contains(name)) {
+        if (isManaged(name)) {
             ldapUser.setAttribute(name, values);
         } else {
             ldapUser.setCustomAttribute(name, values);
@@ -618,31 +610,38 @@ public class LDAPIdentityStore implements IdentityStore, LDAPChangeNotificationH
         }
     }
 
-    private void readStandardList(String fileName) {
-        try {
-            InputStream is = getClass().getClassLoader().getResourceAsStream(fileName);
-            BufferedReader br = new BufferedReader(new InputStreamReader(is));
-            String strLine;
-            // Read File Line By Line
-            while ((strLine = br.readLine()) != null) {
-                addTokens(strLine);
-            }
-            // Close the input stream
-            is.close();
-        } catch (Exception e) {// Catch exception if any
-            System.err.println("Error: " + e.getMessage());
-        }
-    }
-
-    private void addTokens(String line) {
-        StringTokenizer st = new StringTokenizer(line, ",");
-        while (st.hasMoreTokens()) {
-            this.standardAttributes.add(st.nextToken());
-        }
-    }
-
     @Override
     public boolean isManaged(String attributeName) {
-        return standardAttributes.contains(attributeName);
+        if (managedAttributes.contains(attributeName)) {
+            return true;
+        } else {
+            if (checkDirectoryServerForAttributePresence(attributeName)) {
+                managedAttributes.add(attributeName);
+                return true;
+            }
+        }
+        return false;
+    }
+
+    /**
+     * Ask the ldap server for the schema for the attribute
+     *
+     * @param attributeName
+     * @return
+     */
+    private boolean checkDirectoryServerForAttributePresence(String attributeName) {
+
+        try {
+            DirContext schema = ctx.getSchema("");
+
+            DirContext cnSchema = (DirContext) schema.lookup("AttributeDefinition/" + attributeName);
+            if (cnSchema != null) {
+                return true;
+            }
+        } catch (Exception e) {
+            return false; // Probably an unmanaged attribute
+        }
+
+        return false;
     }
 }
