@@ -44,10 +44,13 @@ public class DatabaseGroup extends AbstractDatabaseIdentityType<DatabaseGroupAtt
     private String name;
 
     @OneToMany(mappedBy = "group", cascade = CascadeType.ALL)
-    private List<DatabaseGroupAttribute> groupAttributes = new ArrayList<DatabaseGroupAttribute>();
+    private List<DatabaseGroupAttribute> ownerAttributes = new ArrayList<DatabaseGroupAttribute>();
 
     @ManyToOne
     private DatabaseGroup parentGroup;
+    
+    @OneToMany(mappedBy = "group", cascade = CascadeType.ALL)
+    private List<DatabaseMembership> memberships = new ArrayList<DatabaseMembership>();
 
     public DatabaseGroup() {
     }
@@ -75,9 +78,27 @@ public class DatabaseGroup extends AbstractDatabaseIdentityType<DatabaseGroupAtt
         this.parentGroup = parentGroup;
     }
 
+    public void setOwnerAttributes(List<DatabaseGroupAttribute> ownerAttributes) {
+        this.ownerAttributes = ownerAttributes;
+    }
+ 
+    /**
+     * @return the memberships
+     */
+    public List<DatabaseMembership> getMemberships() {
+        return memberships;
+    }
+
+    /**
+     * @param memberships the memberships to set
+     */
+    public void setMemberships(List<DatabaseMembership> memberships) {
+        this.memberships = memberships;
+    }
+
     @Override
     public List<DatabaseGroupAttribute> getOwnerAttributes() {
-        return this.groupAttributes;
+        return this.ownerAttributes;
     }
 
     @Override

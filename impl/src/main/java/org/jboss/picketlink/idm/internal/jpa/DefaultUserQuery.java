@@ -31,51 +31,27 @@ import org.jboss.picketlink.idm.model.Role;
 import org.jboss.picketlink.idm.model.SimpleGroup;
 import org.jboss.picketlink.idm.model.SimpleRole;
 import org.jboss.picketlink.idm.model.User;
-import org.jboss.picketlink.idm.query.Range;
 import org.jboss.picketlink.idm.query.UserQuery;
 
 /**
  * @author <a href="mailto:psilva@redhat.com">Pedro Silva</a>
  *
  */
-public class DefaultUserQuery implements UserQuery {
+public class DefaultUserQuery extends AbstractQuery<DefaultUserQuery> implements UserQuery {
 
-    private String name;
     private Group relatedGroup;
     private String relatedGroupId;
     private Role role;
     private String roleName;
-    private Map<String, String[]> attributeFilters = new HashMap<String, String[]>();
     private String firstName;
     private String lastName;
     private String email;
-    private boolean enabled = true;
-    private boolean sortAscending;
 
-    @Override
-    public UserQuery reset() {
-        return this;
-    }
 
-    @Override
-    public UserQuery getImmutable() {
-        return this;
-    }
 
     @Override
     public List<User> executeQuery(UserQuery query) {
         return null;
-    }
-
-    @Override
-    public UserQuery setName(String name) {
-        this.name = name;
-        return this;
-    }
-
-    @Override
-    public String getName() {
-        return this.name;
     }
 
     @Override
@@ -129,17 +105,6 @@ public class DefaultUserQuery implements UserQuery {
     }
 
     @Override
-    public UserQuery setAttributeFilter(String name, String[] values) {
-        this.attributeFilters.put(name, values);
-        return this;
-    }
-
-    @Override
-    public Map<String, String[]> getAttributeFilters() {
-        return this.attributeFilters;
-    }
-
-    @Override
     public UserQuery setFirstName(String firstName) {
         this.firstName = firstName;
         return this;
@@ -170,33 +135,6 @@ public class DefaultUserQuery implements UserQuery {
     @Override
     public String getEmail() {
         return this.email;
-    }
-
-    @Override
-    public UserQuery setEnabled(boolean enabled) {
-        this.enabled = enabled;
-        return this;
-    }
-
-    @Override
-    public boolean getEnabled() {
-        return this.enabled;
-    }
-
-    @Override
-    public UserQuery sort(boolean ascending) {
-        this.sortAscending = ascending;
-        return this;
-    }
-
-    @Override
-    public void setRange(Range range) {
-        
-    }
-
-    @Override
-    public Range getRange() {
-        return null;
     }
 
 }

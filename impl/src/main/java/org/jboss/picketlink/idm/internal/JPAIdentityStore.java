@@ -233,7 +233,7 @@ public class JPAIdentityStore implements IdentityStore {
 
                     for (Entry<String, String[]> entry : entrySet) {
                         List<Predicate> attrPredicates = new ArrayList<Predicate>();
-                        Join<DatabaseUser, DatabaseUserAttribute> joinAttr = user.join("userAttributes");
+                        Join<DatabaseUser, DatabaseUserAttribute> joinAttr = user.join("ownerAttributes");
                         
                         Predicate conjunction = criteriaBuilder.conjunction();
                         conjunction.getExpressions().add(criteriaBuilder.equal(joinAttr.get("name"), entry.getKey()));
@@ -252,9 +252,76 @@ public class JPAIdentityStore implements IdentityStore {
     }
 
     @Override
-    public List<Group> executeQuery(GroupQuery query, Range range) {
-        // TODO Auto-generated method stub
-        return null;
+    public List<Group> executeQuery(final GroupQuery query, Range range) {
+        return (List<Group>) this.jpaTemplate.execute(new JPACallback() {
+
+            @Override
+            public Object execute(EntityManager entityManager) {
+                CriteriaBuilder criteriaBuilder = entityManager.getCriteriaBuilder();
+                CriteriaQuery<DatabaseGroup> criteriaQuery = criteriaBuilder.createQuery(DatabaseGroup.class);
+
+                Root<DatabaseGroup> group = criteriaQuery.from(DatabaseGroup.class);
+
+                group.alias("resultClass");
+                criteriaQuery.distinct(true);
+                
+                List<Predicate> predicates = new ArrayList<Predicate>();
+
+                // predicates for some basic informations
+                if (query.getName() != null) {
+                    predicates.add(criteriaBuilder.equal(group.get("name"), query.getName()));
+                }
+
+                if (query.getId() != null) {
+                    predicates.add(criteriaBuilder.equal(group.get("id"), query.getId()));
+                }
+
+                // predicates for the parent group
+                if (query.getParentGroup() != null) {
+                    Join<DatabaseGroup, DatabaseGroup> joinParentGroup = group.join("parentGroup");
+                    predicates.add(criteriaBuilder.equal(joinParentGroup.get("id"), query.getParentGroup().getId()));
+                }
+
+                Join<DatabaseGroup, DatabaseMembership> join = null;
+
+                if (query.getRelatedUser() != null || query.getRole() != null) {
+                    join = group.join("memberships");
+                }
+                
+                // predicates for the role
+                if (query.getRole() != null) {
+                    Join<DatabaseMembership, DatabaseRole> joinRole = join.join("role");
+                    predicates.add(criteriaBuilder.equal(joinRole.get("name"), query.getRole().getName()));
+                }
+
+                // predicates for the user
+                if (query.getRelatedUser() != null) {
+                    Join<DatabaseMembership, DatabaseUser> joinGroup = join.join("user");
+                    predicates.add(criteriaBuilder.equal(joinGroup.get("id"), query.getRelatedUser().getId()));
+                }
+
+                // predicates for the attributes
+                if (query.getAttributeFilters() != null) {
+                    Set<Entry<String, String[]>> entrySet = query.getAttributeFilters().entrySet();
+
+                    for (Entry<String, String[]> entry : entrySet) {
+                        List<Predicate> attrPredicates = new ArrayList<Predicate>();
+                        Join<DatabaseGroup, DatabaseUserAttribute> joinAttr = group.join("ownerAttributes");
+                        
+                        Predicate conjunction = criteriaBuilder.conjunction();
+                        conjunction.getExpressions().add(criteriaBuilder.equal(joinAttr.get("name"), entry.getKey()));
+                        conjunction.getExpressions().add(joinAttr.get("value").in(entry.getValue()));
+                        predicates.add(conjunction);
+                    }
+                }
+
+                criteriaQuery.where(predicates.toArray(new Predicate[predicates.size()]));
+
+                TypedQuery<DatabaseGroup> resultQuery = entityManager.createQuery(criteriaQuery);
+
+                return resultQuery.getResultList();
+            }
+        });
     }
 
     @Override
