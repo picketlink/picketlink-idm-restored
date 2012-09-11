@@ -208,12 +208,22 @@ public class JPAIdentityStore implements IdentityStore {
 
                 predicates.add(criteriaBuilder.equal(user.get("enabled"), query.getEnabled()));
 
+                Join<DatabaseUser, DatabaseMembership> join = null;
+
+                if (query.getRole() != null || query.getRelatedGroup() != null) {
+                    join = user.join("memberships");
+                }
+                
                 // predicates for the role
                 if (query.getRole() != null) {
-                    Join<DatabaseUser, DatabaseMembership> join = user.join("memberships");
                     Join<DatabaseMembership, DatabaseRole> joinRole = join.join("role");
-
                     predicates.add(criteriaBuilder.equal(joinRole.get("name"), query.getRole().getName()));
+                }
+
+                // predicates for the group
+                if (query.getRelatedGroup() != null) {
+                    Join<DatabaseMembership, DatabaseGroup> joinGroup = join.join("group");
+                    predicates.add(criteriaBuilder.equal(joinGroup.get("name"), query.getRelatedGroup().getName()));
                 }
 
                 // predicates for the attributes

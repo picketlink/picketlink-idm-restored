@@ -26,7 +26,6 @@ import static junit.framework.Assert.assertFalse;
 
 import java.util.List;
 
-import org.jboss.picketlink.idm.internal.JPAIdentityStore;
 import org.jboss.picketlink.idm.internal.jpa.DefaultUserQuery;
 import org.jboss.picketlink.idm.model.Group;
 import org.jboss.picketlink.idm.model.Role;
@@ -148,6 +147,24 @@ public class JPAUserQueryTestCase extends AbstractJPAIdentityStoreTestCase {
 
     /**
      * <p>
+     * Tests a simple query using the group property.
+     * </p>
+     *
+     * @throws Exception
+     */
+    @Test
+    public void testfindByGroup() throws Exception {
+        IdentityStore identityStore = createIdentityStore();
+        
+        List<User> result = identityStore.executeQuery(createFindByGroup(), null);
+        
+        assertFalse(result.isEmpty());
+        assertEquals(USER_USERNAME, result.get(0).getKey());
+    }
+
+
+    /**
+     * <p>
      * Tests a simple query using the user's attributes.
      * </p>
      *
@@ -221,6 +238,14 @@ public class JPAUserQueryTestCase extends AbstractJPAIdentityStoreTestCase {
         UserQuery query = new DefaultUserQuery();
         
         query.setRole("admin");
+        
+        return query;
+    }
+    
+    private UserQuery createFindByGroup() {
+        UserQuery query = new DefaultUserQuery();
+        
+        query.setRelatedGroup("Administrators");
         
         return query;
     }

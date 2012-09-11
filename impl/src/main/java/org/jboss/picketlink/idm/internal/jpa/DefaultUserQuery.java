@@ -28,6 +28,7 @@ import java.util.Map;
 
 import org.jboss.picketlink.idm.model.Group;
 import org.jboss.picketlink.idm.model.Role;
+import org.jboss.picketlink.idm.model.SimpleGroup;
 import org.jboss.picketlink.idm.model.SimpleRole;
 import org.jboss.picketlink.idm.model.User;
 import org.jboss.picketlink.idm.query.Range;
@@ -91,7 +92,15 @@ public class DefaultUserQuery implements UserQuery {
 
     @Override
     public Group getRelatedGroup() {
-        return this.relatedGroup;
+        if (this.relatedGroup != null) {
+            return relatedGroup;
+        }
+        
+        if (this.relatedGroupId == null) {
+            return null;
+        }
+        
+        return new SimpleGroup(null, this.relatedGroupId, null);
     }
 
     @Override
@@ -108,6 +117,10 @@ public class DefaultUserQuery implements UserQuery {
 
     @Override
     public Role getRole() {
+        if (this.role != null) {
+            return this.role;
+        }
+        
         if (this.roleName == null) {
             return null;
         }
