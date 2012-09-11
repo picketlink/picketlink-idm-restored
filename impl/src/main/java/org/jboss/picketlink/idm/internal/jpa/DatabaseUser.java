@@ -51,6 +51,9 @@ public class DatabaseUser extends AbstractDatabaseIdentityType<DatabaseUserAttri
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL)
     private List<DatabaseUserAttribute> userAttributes = new ArrayList<DatabaseUserAttribute>();
 
+    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL)
+    private List<DatabaseMembership> memberships = new ArrayList<DatabaseMembership>();
+
     public DatabaseUser() {
     }
 
@@ -110,6 +113,20 @@ public class DatabaseUser extends AbstractDatabaseIdentityType<DatabaseUserAttri
      */
     public void setEmail(String email) {
         this.email = email;
+    }
+
+    /**
+     * @return the memberships
+     */
+    public List<DatabaseMembership> getMemberships() {
+        return memberships;
+    }
+
+    /**
+     * @param memberships the memberships to set
+     */
+    public void setMemberships(List<DatabaseMembership> memberships) {
+        this.memberships = memberships;
     }
 
     /**

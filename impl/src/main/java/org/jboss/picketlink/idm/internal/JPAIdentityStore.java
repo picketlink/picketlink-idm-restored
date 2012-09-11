@@ -21,17 +21,27 @@
  */
 package org.jboss.picketlink.idm.internal;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
+import java.util.Set;
 
 import javax.persistence.EntityManager;
 import javax.persistence.NoResultException;
 import javax.persistence.Query;
+import javax.persistence.TypedQuery;
+import javax.persistence.criteria.CriteriaBuilder;
+import javax.persistence.criteria.CriteriaQuery;
+import javax.persistence.criteria.Join;
+import javax.persistence.criteria.Predicate;
+import javax.persistence.criteria.Root;
 
 import org.jboss.picketlink.idm.internal.jpa.DatabaseGroup;
 import org.jboss.picketlink.idm.internal.jpa.DatabaseMembership;
 import org.jboss.picketlink.idm.internal.jpa.DatabaseRole;
 import org.jboss.picketlink.idm.internal.jpa.DatabaseUser;
+import org.jboss.picketlink.idm.internal.jpa.DatabaseUserAttribute;
 import org.jboss.picketlink.idm.internal.jpa.JPACallback;
 import org.jboss.picketlink.idm.internal.jpa.JPATemplate;
 import org.jboss.picketlink.idm.internal.jpa.NamedQueries;
@@ -49,7 +59,7 @@ import org.jboss.picketlink.idm.spi.IdentityStore;
 
 /**
  * An implementation of IdentityStore backed by a JPA datasource
- *
+ * 
  * @author Shane Bryzak
  * @author <a href="mailto:psilva@redhat.com">Pedro Silva</a>
  */
@@ -162,9 +172,73 @@ public class JPAIdentityStore implements IdentityStore {
     }
 
     @Override
-    public List<User> executeQuery(UserQuery query, Range range) {
-        // TODO Auto-generated method stub
-        return null;
+    public List<User> executeQuery(final UserQuery query, Range range) {
+        return (List<User>) this.jpaTemplate.execute(new JPACallback() {
+
+            @Override
+            public Object execute(EntityManager entityManager) {
+                CriteriaBuilder cb = entityManager.getCriteriaBuilder();
+
+                CriteriaQuery<DatabaseUser> criteriaQuery = cb.createQuery(DatabaseUser.class);
+
+                Root<DatabaseUser> user = criteriaQuery.from(DatabaseUser.class);
+
+                user.alias("resultClass");
+
+                List<Predicate> basicInfoPredicates = new ArrayList<Predicate>();
+
+                Predicate keyRestriction = cb.equal(user.get("key"), query.getName());
+                Predicate emailRestriction = cb.equal(user.get("email"), query.getEmail());
+                Predicate firstNameRestriction = cb.equal(user.get("firstName"), query.getFirstName());
+                Predicate lastNameRestriction = cb.equal(user.get("lastName"), query.getLastName());
+                Predicate enabledRestriction = cb.equal(user.get("enabled"), query.getEnabled());
+
+                if (query.getName() != null) {
+                    basicInfoPredicates.add(cb.equal(user.get("key"), query.getName()));
+                }
+
+                if (query.getEmail() != null) {
+                    basicInfoPredicates.add(cb.equal(user.get("email"), query.getEmail()));
+                }
+
+                if (query.getFirstName() != null) {
+                    basicInfoPredicates.add(cb.equal(user.get("firstName"), query.getFirstName()));
+                }
+
+                if (query.getLastName() != null) {
+                    basicInfoPredicates.add(cb.equal(user.get("lastName"), query.getLastName()));
+                }
+
+                basicInfoPredicates.add(cb.equal(user.get("enabled"), query.getEnabled()));
+
+                if (query.getRole() != null) {
+                    Join<DatabaseUser, DatabaseMembership> join = user.join("memberships");
+                    Join<DatabaseMembership, DatabaseRole> joinRole = join.join("role");
+
+                    basicInfoPredicates.add(cb.equal(joinRole.get("name"), query.getRole().getName()));
+                }
+
+                if (query.getAttributeFilters() != null) {
+                    Set<Entry<String, String[]>> entrySet = query.getAttributeFilters().entrySet();
+
+                    for (Entry<String, String[]> entry : entrySet) {
+                        List<Predicate> attrPredicates = new ArrayList<Predicate>();
+                        Join<DatabaseUser, DatabaseUserAttribute> joinAttr = user.join("userAttributes");
+                        
+                        Predicate conjunction = cb.conjunction();
+                        conjunction.getExpressions().add(cb.equal(joinAttr.get("name"), entry.getKey()));
+                        conjunction.getExpressions().add(joinAttr.get("value").in(entry.getValue()));
+                        basicInfoPredicates.add(conjunction);
+                    }
+                }
+
+                criteriaQuery.where(basicInfoPredicates.toArray(new Predicate[basicInfoPredicates.size()]));
+
+                TypedQuery<DatabaseUser> resultQuery = entityManager.createQuery(criteriaQuery);
+
+                return resultQuery.getResultList();
+            }
+        });
     }
 
     @Override
@@ -265,7 +339,7 @@ public class JPAIdentityStore implements IdentityStore {
      * <p>
      * Executes the {@link JPACallback} instance.
      * </p>
-     *
+     * 
      * @param callback
      * @return
      */
@@ -277,7 +351,7 @@ public class JPAIdentityStore implements IdentityStore {
      * <p>
      * Persists a specific instance.
      * </p>
-     *
+     * 
      * @param entity
      */
     private void persist(final Object entity) {
@@ -297,7 +371,7 @@ public class JPAIdentityStore implements IdentityStore {
      * <p>
      * Removes a specific instance.
      * </p>
-     *
+     * 
      * @param entity
      */
     private void remove(final Object entity) {
@@ -315,7 +389,7 @@ public class JPAIdentityStore implements IdentityStore {
      * <p>
      * Find a instance with the given name and using the specified named query.
      * </p>
-     *
+     * 
      * @param name
      * @param namedQueryName
      * @return

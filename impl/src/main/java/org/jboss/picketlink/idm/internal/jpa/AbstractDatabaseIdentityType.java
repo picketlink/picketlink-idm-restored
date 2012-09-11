@@ -49,7 +49,7 @@ public abstract class AbstractDatabaseIdentityType<A extends AbstractDatabaseAtt
     private String id;
 
     private String key;
-    private boolean enabled;
+    private boolean enabled = true;
     private Date expirationDate;
     private Date creationDate;
 
