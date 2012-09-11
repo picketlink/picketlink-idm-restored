@@ -81,6 +81,8 @@ public class LDAPUserTestCase extends AbstractLDAPTest {
         assertEquals("Saldhana", anil.getLastName());
 
         // Deal with Anil's attributes
+        anil.setAttribute("telephoneNumber", "12345678");
+
         anil.setAttribute("QuestionTotal", "2");
         anil.setAttribute("Question1", "What is favorite toy?");
         anil.setAttribute("Question1Answer", "Gum");
@@ -102,6 +104,7 @@ public class LDAPUserTestCase extends AbstractLDAPTest {
         Map<String, String[]> attributes = store.getAttributes(anil);
         assertNotNull(attributes);
 
+        assertEquals("12345678", attributes.get("telephoneNumber")[0]);
         assertEquals("2", attributes.get("QuestionTotal")[0]);
         assertEquals("What is favorite toy?", attributes.get("Question1")[0]);
         assertEquals("Gum", attributes.get("Question1Answer")[0]);
