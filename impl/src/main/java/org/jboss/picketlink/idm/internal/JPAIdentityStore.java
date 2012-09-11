@@ -171,53 +171,52 @@ public class JPAIdentityStore implements IdentityStore {
         });
     }
 
+    /* (non-Javadoc)
+     * @see org.jboss.picketlink.idm.spi.IdentityStore#executeQuery(org.jboss.picketlink.idm.query.UserQuery, org.jboss.picketlink.idm.query.Range)
+     */
     @Override
     public List<User> executeQuery(final UserQuery query, Range range) {
         return (List<User>) this.jpaTemplate.execute(new JPACallback() {
 
             @Override
             public Object execute(EntityManager entityManager) {
-                CriteriaBuilder cb = entityManager.getCriteriaBuilder();
-
-                CriteriaQuery<DatabaseUser> criteriaQuery = cb.createQuery(DatabaseUser.class);
+                CriteriaBuilder criteriaBuilder = entityManager.getCriteriaBuilder();
+                CriteriaQuery<DatabaseUser> criteriaQuery = criteriaBuilder.createQuery(DatabaseUser.class);
 
                 Root<DatabaseUser> user = criteriaQuery.from(DatabaseUser.class);
 
                 user.alias("resultClass");
 
-                List<Predicate> basicInfoPredicates = new ArrayList<Predicate>();
+                List<Predicate> predicates = new ArrayList<Predicate>();
 
-                Predicate keyRestriction = cb.equal(user.get("key"), query.getName());
-                Predicate emailRestriction = cb.equal(user.get("email"), query.getEmail());
-                Predicate firstNameRestriction = cb.equal(user.get("firstName"), query.getFirstName());
-                Predicate lastNameRestriction = cb.equal(user.get("lastName"), query.getLastName());
-                Predicate enabledRestriction = cb.equal(user.get("enabled"), query.getEnabled());
-
+                // predicates for some basic informations
                 if (query.getName() != null) {
-                    basicInfoPredicates.add(cb.equal(user.get("key"), query.getName()));
+                    predicates.add(criteriaBuilder.equal(user.get("key"), query.getName()));
                 }
 
                 if (query.getEmail() != null) {
-                    basicInfoPredicates.add(cb.equal(user.get("email"), query.getEmail()));
+                    predicates.add(criteriaBuilder.equal(user.get("email"), query.getEmail()));
                 }
 
                 if (query.getFirstName() != null) {
-                    basicInfoPredicates.add(cb.equal(user.get("firstName"), query.getFirstName()));
+                    predicates.add(criteriaBuilder.equal(user.get("firstName"), query.getFirstName()));
                 }
 
                 if (query.getLastName() != null) {
-                    basicInfoPredicates.add(cb.equal(user.get("lastName"), query.getLastName()));
+                    predicates.add(criteriaBuilder.equal(user.get("lastName"), query.getLastName()));
                 }
 
-                basicInfoPredicates.add(cb.equal(user.get("enabled"), query.getEnabled()));
+                predicates.add(criteriaBuilder.equal(user.get("enabled"), query.getEnabled()));
 
+                // predicates for the role
                 if (query.getRole() != null) {
                     Join<DatabaseUser, DatabaseMembership> join = user.join("memberships");
                     Join<DatabaseMembership, DatabaseRole> joinRole = join.join("role");
 
-                    basicInfoPredicates.add(cb.equal(joinRole.get("name"), query.getRole().getName()));
+                    predicates.add(criteriaBuilder.equal(joinRole.get("name"), query.getRole().getName()));
                 }
 
+                // predicates for the attributes
                 if (query.getAttributeFilters() != null) {
                     Set<Entry<String, String[]>> entrySet = query.getAttributeFilters().entrySet();
 
@@ -225,14 +224,14 @@ public class JPAIdentityStore implements IdentityStore {
                         List<Predicate> attrPredicates = new ArrayList<Predicate>();
                         Join<DatabaseUser, DatabaseUserAttribute> joinAttr = user.join("userAttributes");
                         
-                        Predicate conjunction = cb.conjunction();
-                        conjunction.getExpressions().add(cb.equal(joinAttr.get("name"), entry.getKey()));
+                        Predicate conjunction = criteriaBuilder.conjunction();
+                        conjunction.getExpressions().add(criteriaBuilder.equal(joinAttr.get("name"), entry.getKey()));
                         conjunction.getExpressions().add(joinAttr.get("value").in(entry.getValue()));
-                        basicInfoPredicates.add(conjunction);
+                        predicates.add(conjunction);
                     }
                 }
 
-                criteriaQuery.where(basicInfoPredicates.toArray(new Predicate[basicInfoPredicates.size()]));
+                criteriaQuery.where(predicates.toArray(new Predicate[predicates.size()]));
 
                 TypedQuery<DatabaseUser> resultQuery = entityManager.createQuery(criteriaQuery);
 

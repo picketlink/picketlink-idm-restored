@@ -38,7 +38,7 @@ import org.junit.Test;
 
 /**
  * <p>
- * Tests the creation of users using the {@link JPAIdentityStore}.
+ * Tests the query support for {@link User} instances.
  * </p>
  *
  * @author <a href="mailto:psilva@redhat.com">Pedro Silva</a>
@@ -51,6 +51,9 @@ public class JPAUserQueryTestCase extends AbstractJPAIdentityStoreTestCase {
     private static final String USER_USERNAME = "asaldhana";
     private User user;
 
+    /* (non-Javadoc)
+     * @see org.jboss.picketlink.test.idm.internal.jpa.AbstractJPAIdentityStoreTestCase#onSetupTest()
+     */
     @Override
     @Before
     public void onSetupTest() throws Exception {
@@ -145,7 +148,7 @@ public class JPAUserQueryTestCase extends AbstractJPAIdentityStoreTestCase {
 
     /**
      * <p>
-     * Tests a simple query using the user attributes.
+     * Tests a simple query using the user's attributes.
      * </p>
      *
      * @throws Exception
@@ -160,6 +163,9 @@ public class JPAUserQueryTestCase extends AbstractJPAIdentityStoreTestCase {
         assertEquals(USER_USERNAME, result.get(0).getKey());
     }
 
+    /**
+     * <p>Create and persist a {@link User} instance for testing.</p>
+     */
     private void loadUsers() {
         IdentityStore identityStore = createIdentityStore();
 
