@@ -6,11 +6,20 @@ import javax.persistence.Id;
 import javax.persistence.ManyToOne;
 import javax.persistence.NamedQuery;
 
+import org.apache.commons.lang.builder.EqualsBuilder;
+import org.apache.commons.lang.builder.HashCodeBuilder;
+import org.apache.commons.lang.builder.ToStringBuilder;
 import org.jboss.picketlink.idm.model.Group;
 import org.jboss.picketlink.idm.model.Membership;
 import org.jboss.picketlink.idm.model.Role;
 import org.jboss.picketlink.idm.model.User;
 
+/**
+ * <p>JPA Entity that maps {@link Membership} instances.</p>
+ *
+ * @author <a href="mailto:psilva@redhat.com">Pedro Silva</a>
+ *
+ */
 @Entity
 @NamedQuery(name = NamedQueries.MEMBERSHIP_LOAD_BY_KEY, query = "from DatabaseMembership where role = :role and user = :user and group = :group")
 public class DatabaseMembership implements Membership {
@@ -94,5 +103,29 @@ public class DatabaseMembership implements Membership {
         this.role = role;
     }
 
-    // TODO: implement hashcode and equals methods
+    @Override
+    public boolean equals(Object obj) {
+        if (obj == null) {
+            return false;
+        }
+
+        if (!(obj instanceof DatabaseMembership)) {
+            return false;
+        }
+
+        DatabaseMembership other = (DatabaseMembership) obj;
+
+        return new EqualsBuilder().append(getId(), other.getId()).isEquals();
+    }
+
+    @Override
+    public String toString() {
+        return new ToStringBuilder(this).append("id", getId()).append("role", getRole()).append("group", getGroup())
+                .append("user", getUser()).toString();
+    }
+
+    @Override
+    public int hashCode() {
+        return new HashCodeBuilder(17, 37).append(getId()).toHashCode();
+    }
 }

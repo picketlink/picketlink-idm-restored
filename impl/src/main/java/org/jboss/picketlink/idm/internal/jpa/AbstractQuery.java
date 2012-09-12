@@ -22,59 +22,68 @@
 
 package org.jboss.picketlink.idm.internal.jpa;
 
-import javax.persistence.Entity;
-import javax.persistence.ManyToOne;
+import java.util.HashMap;
+import java.util.Map;
 
-import org.jboss.picketlink.idm.model.Role;
+import org.jboss.picketlink.idm.query.Range;
 
 /**
- * <p>Implementation of {@link AbstractDatabaseAttribute} to manage {@link Role} attributes.</p>
- *
  * @author <a href="mailto:psilva@redhat.com">Pedro Silva</a>
  *
  */
-@Entity
-public class DatabaseRoleAttribute extends AbstractDatabaseAttribute<DatabaseRole> {
+public class AbstractQuery<T> {
 
-    @ManyToOne
-    private DatabaseRole role;
+    private String name;
+    private Map<String, String[]> attributeFilters = new HashMap<String, String[]>();
+    private boolean enabled = true;
+    private boolean sortAscending;
 
-    public DatabaseRoleAttribute() {
+    public T reset() {
+        return (T) this;
+    }
+
+    public T getImmutable() {
+        return (T) this;
+    }
+
+    public T setName(String name) {
+        this.name = name;
+        return (T) this;
+    }
+
+    public String getName() {
+        return this.name;
+    }
+
+    public T setAttributeFilter(String name, String[] values) {
+        this.attributeFilters.put(name, values);
+        return (T) this;
+    }
+
+    public T setEnabled(boolean enabled) {
+        this.enabled = enabled;
+        return (T) this;
+    }
+
+    public boolean getEnabled() {
+        return this.enabled;
+    }
+
+    public Map<String, String[]> getAttributeFilters() {
+        return this.attributeFilters;
+    }
+
+    public void setRange(Range range) {
 
     }
 
-    public DatabaseRoleAttribute(String name, String value) {
-        super(name, value);
+    public Range getRange() {
+        return null;
     }
 
-    /**
-     * @return the role
-     */
-    public DatabaseRole getRole() {
-        return role;
-    }
-
-    /**
-     * @param role the role to set
-     */
-    public void setRole(DatabaseRole role) {
-        this.role = role;
-    }
-
-    /* (non-Javadoc)
-     * @see org.jboss.picketlink.idm.internal.jpa.AbstractDatabaseAttribute#getIdentityType()
-     */
-    @Override
-    protected DatabaseRole getIdentityType() {
-        return this.role;
-    }
-
-    /* (non-Javadoc)
-     * @see org.jboss.picketlink.idm.internal.jpa.AbstractDatabaseAttribute#setIdentityType(org.jboss.picketlink.idm.model.IdentityType)
-     */
-    @Override
-    protected void setIdentityType(DatabaseRole identityType) {
-        this.role = identityType;
+    public T sort(boolean ascending) {
+        this.sortAscending = ascending;
+        return (T) this;
     }
 
 }

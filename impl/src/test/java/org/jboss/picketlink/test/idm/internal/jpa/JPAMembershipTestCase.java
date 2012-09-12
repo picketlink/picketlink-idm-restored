@@ -19,96 +19,73 @@
  * Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
  * 02110-1301 USA, or see the FSF site: http://www.fsf.org.
  */
-package org.jboss.picketlink.test.idm.internal;
+package org.jboss.picketlink.test.idm.internal.jpa;
 
-import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 
 import org.jboss.picketlink.idm.internal.JPAIdentityStore;
-import org.jboss.picketlink.idm.model.IdentityType;
+import org.jboss.picketlink.idm.model.Group;
+import org.jboss.picketlink.idm.model.Membership;
 import org.jboss.picketlink.idm.model.Role;
+import org.jboss.picketlink.idm.model.User;
 import org.jboss.picketlink.idm.spi.IdentityStore;
 import org.junit.Test;
 
 /**
  * <p>
- * Tests the creation of roles using the {@link JPAIdentityStore}.
+ * Tests the creation of memberships using the {@link JPAIdentityStore}.
  * </p>
  *
  * @author <a href="mailto:psilva@redhat.com">Pedro Silva</a>
  */
-public class JPARoleTestCase extends AbstractJPAIdentityTypeTestCase {
-
-    private static final String ROLE_NAME = "admin";
+public class JPAMembershipTestCase extends AbstractJPAIdentityStoreTestCase {
 
     /**
      * <p>
-     * Tests the creation of an {@link Role} with populating some basic attributes.
+     * Tests the creation of an {@link Membership} with populating some basic attributes.
      * </p>
      *
      * @throws Exception
      */
     @Test
-    public void testRoleStore() throws Exception {
+    public void testMembershipStore() throws Exception {
         IdentityStore identityStore = createIdentityStore();
 
-        Role role = identityStore.createRole(ROLE_NAME);
+        Role role = identityStore.createRole("admin");
+        User user = identityStore.createUser("asaldhan");
+        Group group = identityStore.createGroup("Administrators", null);
 
-        assertNotNull(role);
-        assertNotNull(role.getKey());
-        assertEquals(ROLE_NAME, role.getName());
+        Membership membership = identityStore.createMembership(role, user, group);
 
-        testAddAttributes();
+        assertNotNull(membership);
 
-        testGetGroup();
-
-        testRemoveRole();
+        testRemoveGroup();
     }
 
     /**
      * <p>
-     * Tests the retrieval of an {@link Role} and the removal of attributes.
+     * Tests the remove of an {@link Membership}.
      * </p>
      *
      * @throws Exception
      */
-    public void testGetGroup() throws Exception {
+    public void testRemoveGroup() throws Exception {
         IdentityStore identityStore = createIdentityStore();
 
-        Role group = identityStore.getRole(ROLE_NAME);
+        Role role = identityStore.getRole("admin");
+        User user = identityStore.getUser("asaldhan");
+        Group group = identityStore.getGroup("Administrators");
 
-        assertNotNull(group);
-        assertNotNull(group.getKey());
-        assertEquals(ROLE_NAME, group.getName());
+        Membership membership = identityStore.getMembership(role, user, group);
 
-        testRemoveAttributes();
-    }
+        assertNotNull(membership);
 
-    /**
-     * <p>
-     * Tests the remove of an {@link Role}.
-     * </p>
-     *
-     * @throws Exception
-     */
-    public void testRemoveRole() throws Exception {
-        IdentityStore identityStore = createIdentityStore();
+        identityStore.removeMembership(role, user, group);
 
-        Role role = identityStore.getRole(ROLE_NAME);
+        membership = identityStore.getMembership(role, user, group);
 
-        assertNotNull(role);
-
-        identityStore.removeRole(role);
-
-        role = identityStore.getRole(ROLE_NAME);
-
-        assertNull(role);
-    }
-
-    @Override
-    protected IdentityType getIdentityTypeFromDatabase(IdentityStore identityStore) {
-        return identityStore.getRole(ROLE_NAME);
+        assertNull(membership);
     }
 
 }

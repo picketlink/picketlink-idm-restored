@@ -34,6 +34,8 @@ import javax.persistence.Transient;
 import org.jboss.picketlink.idm.model.User;
 
 /**
+ * <p>JPA Entity that maps {@link User} instances.</p>
+ *
  * @author <a href="mailto:psilva@redhat.com">Pedro Silva</a>
  *
  */
@@ -49,7 +51,10 @@ public class DatabaseUser extends AbstractDatabaseIdentityType<DatabaseUserAttri
     private String fullName;
 
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL)
-    private List<DatabaseUserAttribute> userAttributes = new ArrayList<DatabaseUserAttribute>();
+    private List<DatabaseUserAttribute> ownerAttributes = new ArrayList<DatabaseUserAttribute>();
+
+    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL)
+    private List<DatabaseMembership> memberships = new ArrayList<DatabaseMembership>();
 
     public DatabaseUser() {
     }
@@ -113,18 +118,32 @@ public class DatabaseUser extends AbstractDatabaseIdentityType<DatabaseUserAttri
     }
 
     /**
+     * @return the memberships
+     */
+    public List<DatabaseMembership> getMemberships() {
+        return memberships;
+    }
+
+    /**
+     * @param memberships the memberships to set
+     */
+    public void setMemberships(List<DatabaseMembership> memberships) {
+        this.memberships = memberships;
+    }
+
+    /**
      * @return the userAttributes
      */
     @Override
     public List<DatabaseUserAttribute> getOwnerAttributes() {
-        return userAttributes;
+        return ownerAttributes;
     }
 
     /**
      * @param userAttributes the userAttributes to set
      */
-    public void setUserAttributes(List<DatabaseUserAttribute> userAttributes) {
-        this.userAttributes = userAttributes;
+    public void setOwnerAttributes(List<DatabaseUserAttribute> userAttributes) {
+        this.ownerAttributes = userAttributes;
     }
 
     @Override

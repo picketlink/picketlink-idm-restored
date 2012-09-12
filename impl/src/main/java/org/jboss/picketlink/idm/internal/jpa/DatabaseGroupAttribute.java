@@ -25,7 +25,11 @@ package org.jboss.picketlink.idm.internal.jpa;
 import javax.persistence.Entity;
 import javax.persistence.ManyToOne;
 
+import org.jboss.picketlink.idm.model.Group;
+
 /**
+ * <p>Implementation of {@link AbstractDatabaseAttribute} to manage {@link Group} attributes.</p>
+ *
  * @author <a href="mailto:psilva@redhat.com">Pedro Silva</a>
  *
  */
@@ -42,15 +46,20 @@ public class DatabaseGroupAttribute extends AbstractDatabaseAttribute<DatabaseGr
         super(name, value);
     }
 
+    /* (non-Javadoc)
+     * @see org.jboss.picketlink.idm.internal.jpa.AbstractDatabaseAttribute#getIdentityType()
+     */
     @Override
     protected DatabaseGroup getIdentityType() {
         return this.group;
     }
 
+    /* (non-Javadoc)
+     * @see org.jboss.picketlink.idm.internal.jpa.AbstractDatabaseAttribute#setIdentityType(org.jboss.picketlink.idm.model.IdentityType)
+     */
     @Override
     protected void setIdentityType(DatabaseGroup identityType) {
         this.group = identityType;
     }
 
-    // TODO: implement hashcode and equals methods
 }

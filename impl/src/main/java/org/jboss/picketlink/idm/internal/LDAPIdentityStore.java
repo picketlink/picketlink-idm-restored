@@ -53,6 +53,7 @@ import org.jboss.picketlink.idm.internal.ldap.LDAPRole;
 import org.jboss.picketlink.idm.internal.ldap.LDAPUser;
 import org.jboss.picketlink.idm.internal.ldap.LDAPUserCustomAttributes;
 import org.jboss.picketlink.idm.internal.ldap.ManagedAttributeLookup;
+import org.jboss.picketlink.idm.model.DefaultMembership;
 import org.jboss.picketlink.idm.model.Group;
 import org.jboss.picketlink.idm.model.Membership;
 import org.jboss.picketlink.idm.model.Role;

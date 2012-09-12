@@ -27,7 +27,11 @@ import java.io.Serializable;
 import javax.persistence.Entity;
 import javax.persistence.ManyToOne;
 
+import org.jboss.picketlink.idm.model.User;
+
 /**
+ * <p>Implementation of {@link AbstractDatabaseAttribute} to manage {@link User} attributes.</p>
+ *
  * @author <a href="mailto:psilva@redhat.com">Pedro Silva</a>
  *
  */
@@ -53,15 +57,20 @@ public class DatabaseUserAttribute extends AbstractDatabaseAttribute<DatabaseUse
         return user;
     }
 
+    /* (non-Javadoc)
+     * @see org.jboss.picketlink.idm.internal.jpa.AbstractDatabaseAttribute#getIdentityType()
+     */
     @Override
     protected DatabaseUser getIdentityType() {
         return getUser();
     }
 
+    /* (non-Javadoc)
+     * @see org.jboss.picketlink.idm.internal.jpa.AbstractDatabaseAttribute#setIdentityType(org.jboss.picketlink.idm.model.IdentityType)
+     */
     @Override
     protected void setIdentityType(DatabaseUser identityType) {
         this.user = identityType;
     }
 
-    // TODO: implement hashcode and equals methods
 }
