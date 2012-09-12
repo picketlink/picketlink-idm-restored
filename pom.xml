@@ -9,6 +9,44 @@
 
     <name>PicketLink Identity Management</name>
 
+    <description>
+        PicketLink IDM (Identity Management), a library for the management of users, groups and roles.
+    </description>
+
+    <url>http://www.jboss.org/picketlink</url>
+
+    <licenses>
+        <license>
+	    <name>Apache License, Version 2.0</name>
+	    <distribution>repo</distribution>
+	    <url>http://www.apache.org/licenses/LICENSE-2.0</url>
+	</license>
+    </licenses>
+
+    <developers>
+        <developer>
+	    <name>Shane Bryzak</name>
+	</developer>
+
+	<developer>
+	    <name>Boleslaw Dawidowicz</name>
+	</developer>
+
+	<developer>
+	    <name>Anil Saldhana</name>
+	</developer>
+
+	<developer>
+	    <name>Pedro Igor Silva</name>
+	</developer>
+    </developers>
+
+    <properties>
+        <jboss.releases.repo.url>https://repository.jboss.org/nexus/service/local/staging/deploy/maven2/</jboss.releases.repo.url>
+        <jboss.snapshots.repo.url>https://repository.jboss.org/nexus/content/repositories/snapshots/</jboss.snapshots.repo.url>
+        <maven.build.timestamp.format>yyyyMMdd-HHmm</maven.build.timestamp.format>
+    </properties>
+
     <modules>
         <module>api</module>
         <module>impl</module>
@@ -29,4 +67,74 @@
             </dependency>
         </dependencies>
     </dependencyManagement>
+
+    <build>
+        <plugins>
+	    <plugin>
+	        <groupId>org.apache.maven.plugins</groupId>
+		<artifactId>maven-release-plugin</artifactId>
+		<version>2.2.1</version>
+		<configuration>
+		    <arguments>-Drelease </arguments>
+		    <autoVersionSubmodules>true</autoVersionSubmodules>
+		</configuration>
+	    </plugin>
+
+	    <plugin>
+	        <groupId>org.apache.maven.plugins</groupId>
+		<artifactId>maven-deploy-plugin</artifactId>
+		<version>2.6</version>
+	    </plugin>
+
+	    <plugin>
+	        <groupId>org.apache.maven.plugins</groupId>
+		<artifactId>maven-install-plugin</artifactId>
+		<version>2.3.1</version>
+	    </plugin>
+
+	    <plugin>
+	        <groupId>org.sonatype.plugins</groupId>
+		<artifactId>nexus-maven-plugin</artifactId>
+		<version>1.7</version>
+		<configuration>
+		    <auto>true</auto>
+		    <nexusUrl>https://repository.jboss.org/nexus</nexusUrl>
+		    <serverAuthId>jboss-releases-repository</serverAuthId>
+		</configuration>
+	    </plugin>
+
+	</plugins>
+    </build>
+
+    <profiles>
+        <profile>
+	    <id>distribution</id>
+	    <activation>
+	        <property>
+		    <name>release</name>
+		</property>
+            </activation>
+        </profile>
+    </profiles>
+
+    <scm>
+        <connection>scm:git:git://github.com/picketlink/picketlink-idm.git</connection>
+	<developerConnection>scm:git:git@github.com:picketlink/picketlink-idm.git</developerConnection>
+	<url>http://github.com/picketlink/picketlink-idm</url>
+    </scm>
+
+    <distributionManagement>
+        <repository>
+	    <id>jboss-releases-repository</id>
+	    <name>JBoss Releases Repository</name>
+	    <url>${jboss.releases.repo.url}</url>
+	</repository>
+
+	<snapshotRepository>
+	    <id>jboss-snapshots-repository</id>
+	    <name>JBoss Snapshots Repository</name>
+	    <url>${jboss.snapshots.repo.url}</url>
+	</snapshotRepository>
+    </distributionManagement>
+
 </project>

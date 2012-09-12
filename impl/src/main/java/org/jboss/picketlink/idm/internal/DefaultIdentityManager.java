@@ -25,6 +25,7 @@ import java.util.Collection;
 import java.util.Date;
 
 import org.jboss.picketlink.idm.IdentityManager;
+import org.jboss.picketlink.idm.spi.IdentityStore;
 import org.jboss.picketlink.idm.model.Group;
 import org.jboss.picketlink.idm.model.IdentityType;
 import org.jboss.picketlink.idm.model.Role;
@@ -38,202 +39,199 @@ import org.jboss.picketlink.idm.query.UserQuery;
  * Default implementation of the IdentityManager interface
  *
  * @author Shane Bryzak
+ * @author anil saldhana
  */
 public class DefaultIdentityManager implements IdentityManager {
+    private IdentityStore store = null;
+
+    public DefaultIdentityManager() {
+    }
+
+    public void setIdentityStore(IdentityStore theStore) {
+        this.store = theStore;
+    }
+
     @Override
     public User createUser(String name) {
-        // TODO Auto-generated method stub
-        return null;
+        ensureStoreExists();
+        return store.createUser(name);
     }
 
     @Override
     public void removeUser(User user) {
-        // TODO Auto-generated method stub
-
+        ensureStoreExists();
+        store.removeUser(user);
     }
 
     @Override
     public void removeUser(String name) {
-        // TODO Auto-generated method stub
-
+        ensureStoreExists();
+        store.removeUser(getUser(name));
     }
 
     @Override
     public User getUser(String name) {
-        // TODO Auto-generated method stub
-        return null;
+        ensureStoreExists();
+        return store.getUser(name);
     }
 
     @Override
     public Collection<User> getAllUsers() {
-        // TODO Auto-generated method stub
-        return null;
+        throw new RuntimeException();
     }
 
     @Override
     public Group createGroup(String id) {
-        // TODO Auto-generated method stub
-        return null;
+        return store.createGroup(id, null);
     }
 
     @Override
     public Group createGroup(String id, Group parent) {
-        // TODO Auto-generated method stub
-        return null;
+        ensureStoreExists();
+        return store.createGroup(id, parent);
     }
 
     @Override
     public Group createGroup(String id, String parent) {
-        // TODO Auto-generated method stub
-        return null;
+        ensureStoreExists();
+        Group parentGroup = store.getGroup(parent);
+        return store.createGroup(id, parentGroup);
     }
 
     @Override
     public void removeGroup(Group group) {
-        // TODO Auto-generated method stub
-
+        ensureStoreExists();
+        store.removeGroup(group);
     }
 
     @Override
     public void removeGroup(String groupId) {
-        // TODO Auto-generated method stub
-
+        ensureStoreExists();
+        store.removeGroup(getGroup(groupId));
     }
 
     @Override
     public Group getGroup(String groupId) {
-        // TODO Auto-generated method stub
-        return null;
+        ensureStoreExists();
+        return store.getGroup(groupId);
     }
 
     @Override
     public Group getGroup(String groupId, Group parent) {
-        // TODO Auto-generated method stub
-        return null;
+        ensureStoreExists();
+        return getGroup(groupId); // What about parent?
     }
 
     @Override
     public Collection<Group> getAllGroups() {
-        // TODO Auto-generated method stub
-        return null;
+        throw new RuntimeException();
     }
 
     @Override
     public void addToGroup(IdentityType identityType, Group group) {
-        // TODO Auto-generated method stub
-
+        throw new RuntimeException();
     }
 
     @Override
     public void removeFromGroup(IdentityType identityType, Group group) {
-        // TODO Auto-generated method stub
-
+        throw new RuntimeException();
     }
 
     @Override
     public Collection<IdentityType> getGroupMembers(Group group) {
-        // TODO Auto-generated method stub
-        return null;
+        throw new RuntimeException();
     }
 
     @Override
     public Role createRole(String name) {
-        // TODO Auto-generated method stub
-        return null;
+        ensureStoreExists();
+        return store.createRole(name);
     }
 
     @Override
     public void removeRole(Role role) {
-        // TODO Auto-generated method stub
-
+        ensureStoreExists();
+        store.removeRole(role);
     }
 
     @Override
     public void removeRole(String name) {
-        // TODO Auto-generated method stub
-
+        ensureStoreExists();
+        store.removeRole(getRole(name));
     }
 
     @Override
     public Role getRole(String name) {
-        // TODO Auto-generated method stub
-        return null;
+        ensureStoreExists();
+        return store.getRole(name);
     }
 
     @Override
     public Collection<Role> getAllRoles() {
-        // TODO Auto-generated method stub
-        return null;
+        throw new RuntimeException();
     }
 
     @Override
     public Collection<Role> getRoles(IdentityType identityType, Group group) {
-        // TODO Auto-generated method stub
-        return null;
+        throw new RuntimeException();
     }
 
     @Override
     public boolean hasRole(Role role, IdentityType identityType, Group group) {
-        // TODO Auto-generated method stub
-        return false;
+        throw new RuntimeException();
     }
 
     @Override
     public void grantRole(Role role, IdentityType identityType, Group group) {
-        // TODO Auto-generated method stub
-
+        throw new RuntimeException();
     }
 
     @Override
     public void revokeRole(Role role, IdentityType identityType, Group group) {
-        // TODO Auto-generated method stub
-
+        throw new RuntimeException();
     }
 
     @Override
     public UserQuery createUserQuery() {
-        // TODO Auto-generated method stub
-        return null;
+        throw new RuntimeException();
     }
 
     @Override
     public GroupQuery createGroupQuery() {
-        // TODO Auto-generated method stub
-        return null;
+        throw new RuntimeException();
     }
 
     @Override
     public RoleQuery createRoleQuery() {
-        // TODO Auto-generated method stub
-        return null;
+        throw new RuntimeException();
     }
 
     @Override
     public MembershipQuery createMembershipQuery() {
-        // TODO Auto-generated method stub
-        return null;
+        throw new RuntimeException();
     }
 
     @Override
     public boolean validatePassword(String password) {
-        // TODO Auto-generated method stub
-        return false;
+        throw new RuntimeException();
     }
 
     @Override
     public void updatePassword(String password) {
-        // TODO Auto-generated method stub
-
+        throw new RuntimeException();
     }
 
     public void setEnabled(IdentityType identityType, boolean enabled) {
-        // TODO Auto-generated method stub
-
+        throw new RuntimeException();
     }
 
     public void setExpirationDate(IdentityType identityType, Date expirationDate) {
-        // TODO Auto-generated method stub
-
+        throw new RuntimeException();
     }
 
+    private void ensureStoreExists() {
+        if (store == null) {
+            throw new RuntimeException("Identity Store has not been set");
+        }
+    }
 }

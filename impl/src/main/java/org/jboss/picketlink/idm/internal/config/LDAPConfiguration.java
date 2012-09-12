@@ -39,6 +39,16 @@ public class LDAPConfiguration extends IdentityStoreConfiguration {
     private String protocol;
     private String bindDN;
     private String bindCredential;
+    private String standardAttributesFileName = "standardattributes.txt";
+
+    public String getStandardAttributesFileName() {
+        return standardAttributesFileName;
+    }
+
+    public LDAPConfiguration setStandardAttributesFileName(String standardAttributesFileName) {
+        this.standardAttributesFileName = standardAttributesFileName;
+        return this;
+    }
 
     public LDAPConfiguration setLdapURL(String ldapURL) {
         this.ldapURL = ldapURL;

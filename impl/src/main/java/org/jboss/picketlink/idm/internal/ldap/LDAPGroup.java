@@ -27,7 +27,6 @@ import static org.jboss.picketlink.idm.internal.ldap.LDAPConstants.OBJECT_CLASS;
 
 import javax.naming.NamingException;
 import javax.naming.directory.Attribute;
-import javax.naming.directory.Attributes;
 import javax.naming.directory.BasicAttribute;
 
 import org.jboss.picketlink.idm.model.Group;
@@ -96,6 +95,15 @@ public class LDAPGroup extends DirContextAdaptor implements Group {
 
     @Override
     public String getName() {
+        if (groupName == null) {
+            Attribute cnAttribute = attributes.get(CN);
+            if (cnAttribute != null) {
+                try {
+                    groupName = (String) cnAttribute.get();
+                } catch (NamingException ignore) {
+                }
+            }
+        }
         return groupName;
     }
 
@@ -130,19 +138,5 @@ public class LDAPGroup extends DirContextAdaptor implements Group {
 
     public void setGroupDNSuffix(String groupDNSuffix) {
         this.groupDNSuffix = groupDNSuffix;
-    }
-
-    public static LDAPGroup create(Attributes attributes, String groupDNSuffix) {
-        LDAPGroup ldapGroup = new LDAPGroup();
-        ldapGroup.setGroupDNSuffix(groupDNSuffix);
-
-        try {
-            // Get the common name
-            Attribute cn = attributes.get(CN);
-            ldapGroup.setName((String) cn.get());
-        } catch (NamingException e) {
-            throw new RuntimeException(e);
-        }
-        return ldapGroup;
     }
 }
