@@ -26,14 +26,22 @@ import javax.persistence.GeneratedValue;
 import javax.persistence.Id;
 import javax.persistence.MappedSuperclass;
 
+import org.apache.commons.lang.builder.EqualsBuilder;
+import org.apache.commons.lang.builder.HashCodeBuilder;
+import org.apache.commons.lang.builder.ToStringBuilder;
 import org.jboss.picketlink.idm.model.IdentityType;
 
 /**
+ * <p>
+ * Base class for JPA Entities that stores name/value pairs. Subclasses should override the abstract methods to provide
+ * additional information about the entity that owns the attribute.
+ * </p>
+ *
  * @author <a href="mailto:psilva@redhat.com">Pedro Silva</a>
  *
  */
 @MappedSuperclass
-public abstract class AbstractDatabaseAttribute<O extends IdentityType> {
+public abstract class AbstractDatabaseAttribute<OWNER extends IdentityType> {
 
     @Id
     @GeneratedValue
@@ -65,14 +73,22 @@ public abstract class AbstractDatabaseAttribute<O extends IdentityType> {
     }
 
     /**
-     * @return the user
+     * <p>
+     * Subclasses must override this method to return the owner of this attribute.
+     * </p>
+     *
+     * @return
      */
-    protected abstract O getIdentityType();
+    protected abstract OWNER getIdentityType();
 
     /**
-     * @param user the user to set
+     * <p>
+     * Sets the owner of this attribute.
+     * </p>
+     *
+     * @param identityType
      */
-    protected abstract void setIdentityType(O identityType);
+    protected abstract void setIdentityType(OWNER identityType);
 
     /**
      * @return the name
@@ -102,6 +118,31 @@ public abstract class AbstractDatabaseAttribute<O extends IdentityType> {
         this.value = value;
     }
 
-    // TODO: implement hashcode and equals methods
+    @SuppressWarnings("rawtypes")
+    @Override
+    public boolean equals(Object obj) {
+        if (obj == null) {
+            return false;
+        }
+
+        if (!(obj instanceof AbstractDatabaseAttribute)) {
+            return false;
+        }
+
+        AbstractDatabaseAttribute other = (AbstractDatabaseAttribute) obj;
+
+        return new EqualsBuilder().append(getId(), other.getId()).isEquals();
+    }
+
+    @Override
+    public String toString() {
+        return new ToStringBuilder(this).append("id", getId()).append("owner", getIdentityType()).append("name", getName())
+                .append("value", getValue()).toString();
+    }
+
+    @Override
+    public int hashCode() {
+        return new HashCodeBuilder(17, 37).append(getId()).append(getName()).append(getValue()).toHashCode();
+    }
 
 }

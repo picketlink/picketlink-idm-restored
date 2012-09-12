@@ -19,52 +19,39 @@
  * Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
  * 02110-1301 USA, or see the FSF site: http://www.fsf.org.
  */
-package org.jboss.picketlink.idm.query;
+package org.jboss.picketlink.idm.model;
 
-import java.util.List;
-import java.util.Map;
-
-import org.jboss.picketlink.idm.model.Group;
-import org.jboss.picketlink.idm.model.IdentityType;
-import org.jboss.picketlink.idm.model.Role;
 
 /**
- * RoleQuery. All applied conditions will be resolved with logical AND.
+ * Simple implementation of the {@link Membership} interface
+ *
+ * @author anil saldhana
+ * @since Sep 4, 2012
  */
-public interface RoleQuery {
-    // TODO: Javadocs
-    // TODO: Exceptions
+public class DefaultMembership implements Membership {
 
-    // Operations
+    private User user;
+    private Role role;
+    private Group group;
 
-    RoleQuery reset();
+    public DefaultMembership(User user, Role role, Group group) {
+        this.user = user;
+        this.role = role;
+        this.group = group;
+    }
 
-    RoleQuery getImmutable();
+    @Override
+    public User getUser() {
+        return user;
+    }
 
-    List<Role> executeQuery(RoleQuery query);
+    @Override
+    public Group getGroup() {
+        return group;
+    }
 
-    // Conditions
-
-    RoleQuery setName(String name);
-
-    String getName();
-
-    RoleQuery setOwner(IdentityType owner);
-
-    RoleQuery setGroup(Group group);
-
-    Group getGroup();
-
-    RoleQuery setGroup(String groupId);
-
-    RoleQuery setAttributeFilter(String name, String[] values);
-
-    Map<String, String[]> getAttributeFilters();
-
-    RoleQuery sort(boolean ascending);
-
-    void setRange(Range range);
-
-    Range getRange();
-
+    @Override
+    public Role getRole() {
+        return role;
+    }
 }

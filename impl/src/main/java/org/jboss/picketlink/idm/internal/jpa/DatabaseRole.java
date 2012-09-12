@@ -33,6 +33,8 @@ import javax.persistence.OneToMany;
 import org.jboss.picketlink.idm.model.Role;
 
 /**
+ * <p>JPA Entity that maps {@link Role} instances.</p>
+ *
  * @author <a href="mailto:psilva@redhat.com">Pedro Silva</a>
  *
  */
@@ -43,7 +45,10 @@ public class DatabaseRole extends AbstractDatabaseIdentityType<DatabaseRoleAttri
     private String name;
 
     @OneToMany(mappedBy = "role", cascade = CascadeType.ALL)
-    private List<DatabaseRoleAttribute> roleAttributes = new ArrayList<DatabaseRoleAttribute>();
+    private List<DatabaseRoleAttribute> ownerAttributes = new ArrayList<DatabaseRoleAttribute>();
+
+    @OneToMany(mappedBy = "role", cascade = CascadeType.ALL)
+    private List<DatabaseMembership> memberships = new ArrayList<DatabaseMembership>();
 
     public DatabaseRole() {
     }
@@ -64,7 +69,25 @@ public class DatabaseRole extends AbstractDatabaseIdentityType<DatabaseRoleAttri
 
     @Override
     public List<DatabaseRoleAttribute> getOwnerAttributes() {
-        return this.roleAttributes;
+        return this.ownerAttributes;
+    }
+
+    public void setOwnerAttributes(List<DatabaseRoleAttribute> ownerAttributes) {
+        this.ownerAttributes = ownerAttributes;
+    }
+
+    /**
+     * @return the memberships
+     */
+    public List<DatabaseMembership> getMemberships() {
+        return memberships;
+    }
+
+    /**
+     * @param memberships the memberships to set
+     */
+    public void setMemberships(List<DatabaseMembership> memberships) {
+        this.memberships = memberships;
     }
 
     @Override

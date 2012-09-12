@@ -34,7 +34,7 @@ import org.jboss.picketlink.idm.query.GroupQuery;
 
 /**
  * @author <a href="mailto:psilva@redhat.com">Pedro Silva</a>
- * 
+ *
  */
 public class DefaultGroupQuery extends AbstractQuery<DefaultGroupQuery> implements GroupQuery {
 
@@ -68,7 +68,7 @@ public class DefaultGroupQuery extends AbstractQuery<DefaultGroupQuery> implemen
         this.parentGroup = parentGroup;
         return this;
     }
-    
+
     @Override
     public GroupQuery setParentGroup(String groupId) {
         this.parentGroup = new SimpleGroup(groupId, null, null);

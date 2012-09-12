@@ -59,7 +59,7 @@ import org.jboss.picketlink.idm.spi.IdentityStore;
 
 /**
  * An implementation of IdentityStore backed by a JPA datasource
- * 
+ *
  * @author Shane Bryzak
  * @author <a href="mailto:psilva@redhat.com">Pedro Silva</a>
  */
@@ -67,6 +67,9 @@ public class JPAIdentityStore implements IdentityStore {
 
     private JPATemplate jpaTemplate;
 
+    /* (non-Javadoc)
+     * @see org.jboss.picketlink.idm.spi.IdentityStore#createUser(java.lang.String)
+     */
     @Override
     public User createUser(String name) {
         final DatabaseUser newUser = new DatabaseUser(name);
@@ -76,18 +79,25 @@ public class JPAIdentityStore implements IdentityStore {
         return newUser;
     }
 
+    /* (non-Javadoc)
+     * @see org.jboss.picketlink.idm.spi.IdentityStore#removeUser(org.jboss.picketlink.idm.model.User)
+     */
     @Override
     public void removeUser(final User user) {
+        if (user.getId() == null) {
+            throw new IllegalArgumentException("User identifier nor provided.");
+        }
         remove(user);
     }
 
     @Override
     public User getUser(final String name) {
-        final String namedQueryName = NamedQueries.USER_LOAD_BY_KEY;
-
-        return (User) findIdentityTypeByKey(name, namedQueryName);
+        return (User) findIdentityTypeByKey(name, NamedQueries.USER_LOAD_BY_KEY);
     }
 
+    /* (non-Javadoc)
+     * @see org.jboss.picketlink.idm.spi.IdentityStore#createGroup(java.lang.String, org.jboss.picketlink.idm.model.Group)
+     */
     @Override
     public Group createGroup(String name, Group parent) {
         DatabaseGroup newGroup = new DatabaseGroup(name);
@@ -99,8 +109,15 @@ public class JPAIdentityStore implements IdentityStore {
         return newGroup;
     }
 
+    /* (non-Javadoc)
+     * @see org.jboss.picketlink.idm.spi.IdentityStore#removeGroup(org.jboss.picketlink.idm.model.Group)
+     */
     @Override
     public void removeGroup(Group group) {
+        if (group.getId() == null) {
+            throw new IllegalArgumentException("Group identifier not provided.");
+        }
+
         remove(group);
     }
 
@@ -120,6 +137,10 @@ public class JPAIdentityStore implements IdentityStore {
 
     @Override
     public void removeRole(Role role) {
+        if (role.getName() == null) {
+            throw new IllegalArgumentException("Role name not provided.");
+        }
+
         remove(role);
     }
 
@@ -171,9 +192,13 @@ public class JPAIdentityStore implements IdentityStore {
         });
     }
 
-    /* (non-Javadoc)
-     * @see org.jboss.picketlink.idm.spi.IdentityStore#executeQuery(org.jboss.picketlink.idm.query.UserQuery, org.jboss.picketlink.idm.query.Range)
+    /*
+     * (non-Javadoc)
+     *
+     * @see org.jboss.picketlink.idm.spi.IdentityStore#executeQuery(org.jboss.picketlink.idm.query.UserQuery,
+     * org.jboss.picketlink.idm.query.Range)
      */
+    @SuppressWarnings("unchecked")
     @Override
     public List<User> executeQuery(final UserQuery query, Range range) {
         return (List<User>) this.jpaTemplate.execute(new JPACallback() {
@@ -187,7 +212,7 @@ public class JPAIdentityStore implements IdentityStore {
 
                 user.alias("resultClass");
                 criteriaQuery.distinct(true);
-                
+
                 List<Predicate> predicates = new ArrayList<Predicate>();
 
                 // predicates for some basic informations
@@ -214,7 +239,7 @@ public class JPAIdentityStore implements IdentityStore {
                 if (query.getRole() != null || query.getRelatedGroup() != null) {
                     join = user.join("memberships");
                 }
-                
+
                 // predicates for the role
                 if (query.getRole() != null) {
                     Join<DatabaseMembership, DatabaseRole> joinRole = join.join("role");
@@ -232,12 +257,11 @@ public class JPAIdentityStore implements IdentityStore {
                     Set<Entry<String, String[]>> entrySet = query.getAttributeFilters().entrySet();
 
                     for (Entry<String, String[]> entry : entrySet) {
-                        List<Predicate> attrPredicates = new ArrayList<Predicate>();
                         Join<DatabaseUser, DatabaseUserAttribute> joinAttr = user.join("ownerAttributes");
-                        
+
                         Predicate conjunction = criteriaBuilder.conjunction();
                         conjunction.getExpressions().add(criteriaBuilder.equal(joinAttr.get("name"), entry.getKey()));
-                        conjunction.getExpressions().add(joinAttr.get("value").in(entry.getValue()));
+                        conjunction.getExpressions().add(joinAttr.get("value").in((Object[]) entry.getValue()));
                         predicates.add(conjunction);
                     }
                 }
@@ -251,6 +275,7 @@ public class JPAIdentityStore implements IdentityStore {
         });
     }
 
+    @SuppressWarnings("unchecked")
     @Override
     public List<Group> executeQuery(final GroupQuery query, Range range) {
         return (List<Group>) this.jpaTemplate.execute(new JPACallback() {
@@ -264,7 +289,7 @@ public class JPAIdentityStore implements IdentityStore {
 
                 group.alias("resultClass");
                 criteriaQuery.distinct(true);
-                
+
                 List<Predicate> predicates = new ArrayList<Predicate>();
 
                 // predicates for some basic informations
@@ -287,7 +312,7 @@ public class JPAIdentityStore implements IdentityStore {
                 if (query.getRelatedUser() != null || query.getRole() != null) {
                     join = group.join("memberships");
                 }
-                
+
                 // predicates for the role
                 if (query.getRole() != null) {
                     Join<DatabaseMembership, DatabaseRole> joinRole = join.join("role");
@@ -305,12 +330,11 @@ public class JPAIdentityStore implements IdentityStore {
                     Set<Entry<String, String[]>> entrySet = query.getAttributeFilters().entrySet();
 
                     for (Entry<String, String[]> entry : entrySet) {
-                        List<Predicate> attrPredicates = new ArrayList<Predicate>();
                         Join<DatabaseGroup, DatabaseUserAttribute> joinAttr = group.join("ownerAttributes");
-                        
+
                         Predicate conjunction = criteriaBuilder.conjunction();
                         conjunction.getExpressions().add(criteriaBuilder.equal(joinAttr.get("name"), entry.getKey()));
-                        conjunction.getExpressions().add(joinAttr.get("value").in(entry.getValue()));
+                        conjunction.getExpressions().add(joinAttr.get("value").in((Object[]) entry.getValue()));
                         predicates.add(conjunction);
                     }
                 }
@@ -324,88 +348,163 @@ public class JPAIdentityStore implements IdentityStore {
         });
     }
 
+    @SuppressWarnings("unchecked")
     @Override
-    public List<Role> executeQuery(RoleQuery query, Range range) {
-        // TODO Auto-generated method stub
-        return null;
+    public List<Role> executeQuery(final RoleQuery query, Range range) {
+        return (List<Role>) this.jpaTemplate.execute(new JPACallback() {
+
+            @Override
+            public Object execute(EntityManager entityManager) {
+                CriteriaBuilder criteriaBuilder = entityManager.getCriteriaBuilder();
+                CriteriaQuery<DatabaseRole> criteriaQuery = criteriaBuilder.createQuery(DatabaseRole.class);
+
+                Root<DatabaseRole> role = criteriaQuery.from(DatabaseRole.class);
+
+                role.alias("resultClass");
+                criteriaQuery.distinct(true);
+
+                List<Predicate> predicates = new ArrayList<Predicate>();
+
+                // predicates for some basic informations
+                if (query.getName() != null) {
+                    predicates.add(criteriaBuilder.equal(role.get("name"), query.getName()));
+                }
+
+                Join<DatabaseRole, DatabaseMembership> join = null;
+
+                if (query.getGroup() != null) {
+                    join = role.join("memberships");
+                }
+
+                // predicates for the group
+                if (query.getGroup() != null) {
+                    Join<DatabaseMembership, DatabaseGroup> joinRole = join.join("group");
+                    predicates.add(criteriaBuilder.equal(joinRole.get("id"), query.getGroup().getId()));
+                }
+
+                // predicates for the attributes
+                if (query.getAttributeFilters() != null) {
+                    Set<Entry<String, String[]>> entrySet = query.getAttributeFilters().entrySet();
+
+                    for (Entry<String, String[]> entry : entrySet) {
+                        Join<DatabaseRole, DatabaseUserAttribute> joinAttr = role.join("ownerAttributes");
+
+                        Predicate conjunction = criteriaBuilder.conjunction();
+                        conjunction.getExpressions().add(criteriaBuilder.equal(joinAttr.get("name"), entry.getKey()));
+                        conjunction.getExpressions().add(joinAttr.get("value").in((Object[]) entry.getValue()));
+                        predicates.add(conjunction);
+                    }
+                }
+
+                criteriaQuery.where(predicates.toArray(new Predicate[predicates.size()]));
+
+                TypedQuery<DatabaseRole> resultQuery = entityManager.createQuery(criteriaQuery);
+
+                return resultQuery.getResultList();
+            }
+        });
     }
 
+    @SuppressWarnings("unchecked")
     @Override
-    public List<Membership> executeQuery(MembershipQuery query, Range range) {
-        // TODO Auto-generated method stub
-        return null;
+    public List<Membership> executeQuery(final MembershipQuery query, Range range) {
+        return (List<Membership>) this.jpaTemplate.execute(new JPACallback() {
+
+            @Override
+            public Object execute(EntityManager entityManager) {
+                CriteriaBuilder criteriaBuilder = entityManager.getCriteriaBuilder();
+                CriteriaQuery<DatabaseMembership> criteriaQuery = criteriaBuilder.createQuery(DatabaseMembership.class);
+
+                Root<DatabaseMembership> membership = criteriaQuery.from(DatabaseMembership.class);
+
+                membership.alias("resultClass");
+                criteriaQuery.distinct(true);
+
+                List<Predicate> predicates = new ArrayList<Predicate>();
+
+                // predicates for the group
+                if (query.getGroup() != null) {
+                    Join<DatabaseMembership, DatabaseGroup> joinGroup = membership.join("group");
+                    predicates.add(criteriaBuilder.equal(joinGroup.get("id"), query.getGroup().getId()));
+                }
+
+                if (query.getRole() != null) {
+                    Join<DatabaseMembership, DatabaseRole> joinRole = membership.join("role");
+                    predicates.add(criteriaBuilder.equal(joinRole.get("name"), query.getRole().getName()));
+                }
+
+                if (query.getUser() != null) {
+                    Join<DatabaseMembership, DatabaseUser> joinUser = membership.join("user");
+                    predicates.add(criteriaBuilder.equal(joinUser.get("id"), query.getUser().getId()));
+                }
+
+                criteriaQuery.where(predicates.toArray(new Predicate[predicates.size()]));
+
+                TypedQuery<DatabaseMembership> resultQuery = entityManager.createQuery(criteriaQuery);
+
+                return resultQuery.getResultList();
+            }
+        });
     }
 
     @Override
     public void setAttribute(User user, String name, String[] values) {
-        // TODO Auto-generated method stub
-
+        user.setAttribute(name, values);
     }
 
     @Override
     public void removeAttribute(User user, String name) {
-        // TODO Auto-generated method stub
-
+        user.removeAttribute(name);
     }
 
     @Override
     public String[] getAttributeValues(User user, String name) {
-        // TODO Auto-generated method stub
-        return null;
+        return user.getAttributeValues(name);
     }
 
     @Override
     public Map<String, String[]> getAttributes(User user) {
-        // TODO Auto-generated method stub
-        return null;
+        return user.getAttributes();
     }
 
     @Override
     public void setAttribute(Group group, String name, String[] values) {
-        // TODO Auto-generated method stub
-
+        group.setAttribute(name, values);
     }
 
     @Override
     public void removeAttribute(Group group, String name) {
-        // TODO Auto-generated method stub
-
+        group.removeAttribute(name);
     }
 
     @Override
     public String[] getAttributeValues(Group group, String name) {
-        // TODO Auto-generated method stub
-        return null;
+        return group.getAttributeValues(name);
     }
 
     @Override
     public Map<String, String[]> getAttributes(Group group) {
-        // TODO Auto-generated method stub
-        return null;
+        return group.getAttributes();
     }
 
     @Override
     public void setAttribute(Role role, String name, String[] values) {
-        // TODO Auto-generated method stub
-
+        role.setAttribute(name, values);
     }
 
     @Override
     public void removeAttribute(Role role, String name) {
-        // TODO Auto-generated method stub
-
+        role.removeAttribute(name);
     }
 
     @Override
     public String[] getAttributeValues(Role role, String name) {
-        // TODO Auto-generated method stub
-        return null;
+        return role.getAttributeValues(name);
     }
 
     @Override
     public Map<String, String[]> getAttributes(Role role) {
-        // TODO Auto-generated method stub
-        return null;
+        return role.getAttributes();
     }
 
     public void setJpaTemplate(JPATemplate jpaTemplate) {
@@ -416,7 +515,7 @@ public class JPAIdentityStore implements IdentityStore {
      * <p>
      * Executes the {@link JPACallback} instance.
      * </p>
-     * 
+     *
      * @param callback
      * @return
      */
@@ -428,7 +527,7 @@ public class JPAIdentityStore implements IdentityStore {
      * <p>
      * Persists a specific instance.
      * </p>
-     * 
+     *
      * @param entity
      */
     private void persist(final Object entity) {
@@ -448,7 +547,7 @@ public class JPAIdentityStore implements IdentityStore {
      * <p>
      * Removes a specific instance.
      * </p>
-     * 
+     *
      * @param entity
      */
     private void remove(final Object entity) {
@@ -466,7 +565,7 @@ public class JPAIdentityStore implements IdentityStore {
      * <p>
      * Find a instance with the given name and using the specified named query.
      * </p>
-     * 
+     *
      * @param name
      * @param namedQueryName
      * @return

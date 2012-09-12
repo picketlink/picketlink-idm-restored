@@ -37,7 +37,7 @@ public class AbstractQuery<T> {
     private Map<String, String[]> attributeFilters = new HashMap<String, String[]>();
     private boolean enabled = true;
     private boolean sortAscending;
-    
+
     public T reset() {
         return (T) this;
     }
@@ -54,12 +54,12 @@ public class AbstractQuery<T> {
     public String getName() {
         return this.name;
     }
-    
+
     public T setAttributeFilter(String name, String[] values) {
         this.attributeFilters.put(name, values);
         return (T) this;
     }
-    
+
     public T setEnabled(boolean enabled) {
         this.enabled = enabled;
         return (T) this;
@@ -74,7 +74,7 @@ public class AbstractQuery<T> {
     }
 
     public void setRange(Range range) {
-        
+
     }
 
     public Range getRange() {

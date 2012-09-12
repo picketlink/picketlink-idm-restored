@@ -23,115 +23,86 @@
 package org.jboss.picketlink.idm.internal.jpa;
 
 import java.util.List;
+
 import org.jboss.picketlink.idm.model.Group;
+import org.jboss.picketlink.idm.model.Membership;
 import org.jboss.picketlink.idm.model.Role;
 import org.jboss.picketlink.idm.model.SimpleGroup;
 import org.jboss.picketlink.idm.model.SimpleRole;
+import org.jboss.picketlink.idm.model.SimpleUser;
 import org.jboss.picketlink.idm.model.User;
-import org.jboss.picketlink.idm.query.UserQuery;
+import org.jboss.picketlink.idm.query.MembershipQuery;
 
 /**
  * @author <a href="mailto:psilva@redhat.com">Pedro Silva</a>
  *
  */
-public class DefaultUserQuery extends AbstractQuery<DefaultUserQuery> implements UserQuery {
+public class DefaultMembershipQuery extends AbstractQuery<DefaultMembershipQuery> implements MembershipQuery {
 
-    private Group relatedGroup;
-    private String relatedGroupId;
+    private Group group;
     private Role role;
-    private String roleName;
-    private String firstName;
-    private String lastName;
-    private String email;
-
-
+    private User user;
 
     @Override
-    public List<User> executeQuery(UserQuery query) {
-        return null;
+    public Group getGroup() {
+        return group;
     }
 
     @Override
-    public UserQuery setRelatedGroup(Group group) {
-        this.relatedGroup = group;
-        return this;
-    }
-
-    @Override
-    public UserQuery setRelatedGroup(String groupId) {
-        this.relatedGroupId = groupId;
-        return this;
-    }
-
-    @Override
-    public Group getRelatedGroup() {
-        if (this.relatedGroup != null) {
-            return relatedGroup;
-        }
-
-        if (this.relatedGroupId == null) {
-            return null;
-        }
-
-        return new SimpleGroup(null, this.relatedGroupId, null);
-    }
-
-    @Override
-    public UserQuery setRole(Role role) {
-        this.role = role;
-        return this;
-    }
-
-    @Override
-    public UserQuery setRole(String name) {
-        this.roleName = name;
+    public MembershipQuery setGroup(Group group) {
+        this.group = group;
         return this;
     }
 
     @Override
     public Role getRole() {
-        if (this.role != null) {
-            return this.role;
-        }
-
-        if (this.roleName == null) {
-            return null;
-        }
-
-        return new SimpleRole(this.roleName);
+        return role;
     }
 
     @Override
-    public UserQuery setFirstName(String firstName) {
-        this.firstName = firstName;
+    public MembershipQuery setRole(Role role) {
+        this.role = role;
         return this;
     }
 
     @Override
-    public String getFirstName() {
-        return this.firstName;
+    public User getUser() {
+        return user;
     }
 
     @Override
-    public UserQuery setLastName(String lastName) {
-        this.lastName = lastName;
+    public MembershipQuery setUser(User user) {
+        this.user = user;
         return this;
     }
 
     @Override
-    public String getLastName() {
-        return this.lastName;
+    public MembershipQuery immutable() {
+        return super.getImmutable();
     }
 
     @Override
-    public UserQuery setEmail(String email) {
-        this.email = email;
+    public List<Membership> executeQuery(MembershipQuery query) {
+        // TODO Auto-generated method stub
+        return null;
+    }
+
+    @Override
+    public MembershipQuery setUser(String user) {
+        this.user = new SimpleUser(user);
         return this;
     }
 
     @Override
-    public String getEmail() {
-        return this.email;
+    public MembershipQuery setGroup(String groupId) {
+        this.group = new SimpleGroup(groupId, null, null);
+        return this;
+    }
+
+    @Override
+    public MembershipQuery setRole(String role) {
+        this.role = new SimpleRole(role);
+        return this;
     }
 
 }

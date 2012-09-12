@@ -34,9 +34,14 @@ import javax.persistence.Id;
 import javax.persistence.MappedSuperclass;
 import javax.persistence.Transient;
 
+import org.apache.commons.lang.builder.EqualsBuilder;
+import org.apache.commons.lang.builder.HashCodeBuilder;
+import org.apache.commons.lang.builder.ToStringBuilder;
 import org.jboss.picketlink.idm.model.IdentityType;
 
 /**
+ * <p>Base class for {@link IdentityType} implementations.</p>
+ *
  * @author <a href="mailto:psilva@redhat.com">Pedro Silva</a>
  *
  */
@@ -77,6 +82,9 @@ public abstract class AbstractDatabaseIdentityType<A extends AbstractDatabaseAtt
         this.id = id;
     }
 
+    /* (non-Javadoc)
+     * @see org.jboss.picketlink.idm.model.IdentityType#getKey()
+     */
     @Override
     public String getKey() {
         return this.key;
@@ -86,8 +94,8 @@ public abstract class AbstractDatabaseIdentityType<A extends AbstractDatabaseAtt
         this.key = key;
     }
 
-    /**
-     * @return the enabled
+    /* (non-Javadoc)
+     * @see org.jboss.picketlink.idm.model.IdentityType#isEnabled()
      */
     @Override
     public boolean isEnabled() {
@@ -101,8 +109,8 @@ public abstract class AbstractDatabaseIdentityType<A extends AbstractDatabaseAtt
         this.enabled = enabled;
     }
 
-    /**
-     * @return the expirationDate
+    /* (non-Javadoc)
+     * @see org.jboss.picketlink.idm.model.IdentityType#getExpirationDate()
      */
     @Override
     public Date getExpirationDate() {
@@ -116,8 +124,8 @@ public abstract class AbstractDatabaseIdentityType<A extends AbstractDatabaseAtt
         this.expirationDate = expirationDate;
     }
 
-    /**
-     * @return the creationDate
+    /* (non-Javadoc)
+     * @see org.jboss.picketlink.idm.model.IdentityType#getCreationDate()
      */
     @Override
     public Date getCreationDate() {
@@ -131,11 +139,9 @@ public abstract class AbstractDatabaseIdentityType<A extends AbstractDatabaseAtt
         this.creationDate = creationDate;
     }
 
-    /**
-     * @return the userAttributes
+    /* (non-Javadoc)
+     * @see org.jboss.picketlink.idm.model.IdentityType#setAttribute(java.lang.String, java.lang.String)
      */
-    public abstract List<A> getOwnerAttributes();
-
     @SuppressWarnings("unchecked")
     @Override
     @Transient
@@ -149,8 +155,27 @@ public abstract class AbstractDatabaseIdentityType<A extends AbstractDatabaseAtt
         getOwnerAttributes().add(attribute);
     }
 
+    /**
+     * <p>Subclasses must override this methid to provide the {@link List} of attributes associated with this type.</p>
+     *
+     * @return the userAttributes
+     */
+    public abstract List<A> getOwnerAttributes();
+
+    /**
+     * <p>Subclasses must override this method to instantiate the right {@link AbstractDatabaseAttribute} implementation. </p>
+     *
+     * @param name
+     * @param value
+     * @return
+     */
     protected abstract A createAttribute(String name, String value);
 
+    /**
+     * <p>This method converts the {@link List} of the attributes associated with this type into a {@link Map}.</p>
+     *
+     * @return
+     */
     private Map<String, String[]> getUserAttributesMap() {
         if (this.userAttributesMap == null) {
             this.userAttributesMap = new HashMap<String, String[]>();
@@ -175,6 +200,9 @@ public abstract class AbstractDatabaseIdentityType<A extends AbstractDatabaseAtt
         return this.userAttributesMap;
     }
 
+    /* (non-Javadoc)
+     * @see org.jboss.picketlink.idm.model.IdentityType#setAttribute(java.lang.String, java.lang.String[])
+     */
     @SuppressWarnings("unchecked")
     @Override
     @Transient
@@ -189,6 +217,9 @@ public abstract class AbstractDatabaseIdentityType<A extends AbstractDatabaseAtt
         }
     }
 
+    /* (non-Javadoc)
+     * @see org.jboss.picketlink.idm.model.IdentityType#removeAttribute(java.lang.String)
+     */
     @SuppressWarnings("unchecked")
     @Override
     @Transient
@@ -202,6 +233,9 @@ public abstract class AbstractDatabaseIdentityType<A extends AbstractDatabaseAtt
         }
     }
 
+    /* (non-Javadoc)
+     * @see org.jboss.picketlink.idm.model.IdentityType#getAttribute(java.lang.String)
+     */
     @Override
     @Transient
     public String getAttribute(String name) {
@@ -214,18 +248,47 @@ public abstract class AbstractDatabaseIdentityType<A extends AbstractDatabaseAtt
         return null;
     }
 
+    /* (non-Javadoc)
+     * @see org.jboss.picketlink.idm.model.IdentityType#getAttributeValues(java.lang.String)
+     */
     @Override
     @Transient
     public String[] getAttributeValues(String name) {
         return getUserAttributesMap().get(name);
     }
 
+    /* (non-Javadoc)
+     * @see org.jboss.picketlink.idm.model.IdentityType#getAttributes()
+     */
     @Override
     @Transient
     public Map<String, String[]> getAttributes() {
-        return null;
+        return this.getUserAttributesMap();
     }
 
-    // TODO: implement hashcode and equals methods
+    @Override
+    public boolean equals(Object obj) {
+        if (obj == null) {
+            return false;
+        }
 
+        if (!(obj instanceof AbstractDatabaseIdentityType)) {
+            return false;
+        }
+
+        AbstractDatabaseIdentityType other = (AbstractDatabaseIdentityType) obj;
+
+        return new EqualsBuilder().append(getId(), other.getId()).isEquals();
+    }
+
+    @Override
+    public String toString() {
+        return new ToStringBuilder(this).append("id", getId()).append("key", getKey()).append("enabled", isEnabled())
+                .append("expirationDate", getExpirationDate()).append("creationDate", getCreationDate()).toString();
+    }
+
+    @Override
+    public int hashCode() {
+        return new HashCodeBuilder(17, 37).append(getId()).toHashCode();
+    }
 }

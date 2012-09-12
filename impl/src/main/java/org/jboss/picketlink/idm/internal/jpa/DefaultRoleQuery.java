@@ -19,43 +19,52 @@
  * Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
  * 02110-1301 USA, or see the FSF site: http://www.fsf.org.
  */
-package org.jboss.picketlink.idm.internal;
+
+package org.jboss.picketlink.idm.internal.jpa;
+
+import java.util.List;
 
 import org.jboss.picketlink.idm.model.Group;
-import org.jboss.picketlink.idm.model.Membership;
+import org.jboss.picketlink.idm.model.IdentityType;
 import org.jboss.picketlink.idm.model.Role;
-import org.jboss.picketlink.idm.model.User;
+import org.jboss.picketlink.idm.model.SimpleGroup;
+import org.jboss.picketlink.idm.query.RoleQuery;
 
 /**
- * Simple implementation of the {@link Membership} interface
+ * @author <a href="mailto:psilva@redhat.com">Pedro Silva</a>
  *
- * @author anil saldhana
- * @since Sep 4, 2012
  */
-public class DefaultMembership implements Membership {
+public class DefaultRoleQuery extends AbstractQuery<DefaultRoleQuery> implements RoleQuery {
 
-    private User user;
-    private Role role;
     private Group group;
 
-    public DefaultMembership(User user, Role role, Group group) {
-        this.user = user;
-        this.role = role;
-        this.group = group;
+    @Override
+    public List<Role> executeQuery(RoleQuery query) {
+        // TODO Auto-generated method stub
+        return null;
     }
 
     @Override
-    public User getUser() {
-        return user;
+    public RoleQuery setOwner(IdentityType owner) {
+        // TODO Auto-generated method stub
+        return null;
+    }
+
+    @Override
+    public RoleQuery setGroup(Group group) {
+        this.group = group;
+        return this;
     }
 
     @Override
     public Group getGroup() {
-        return group;
+        return this.group;
     }
 
     @Override
-    public Role getRole() {
-        return role;
+    public RoleQuery setGroup(String groupId) {
+        this.group = new SimpleGroup(groupId, null, null);
+        return this;
     }
+
 }

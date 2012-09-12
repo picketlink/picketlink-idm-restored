@@ -21,8 +21,8 @@
  */
 package org.jboss.picketlink.test.idm.internal.jpa;
 
-import static junit.framework.Assert.assertEquals;
-import static junit.framework.Assert.assertFalse;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
 
 import java.util.List;
 
@@ -59,7 +59,7 @@ public class JPAUserQueryTestCase extends AbstractJPAIdentityStoreTestCase {
         super.onSetupTest();
         loadUsers();
     }
-    
+
     /**
      * <p>
      * Tests a simple query using the username property.
@@ -69,12 +69,11 @@ public class JPAUserQueryTestCase extends AbstractJPAIdentityStoreTestCase {
      */
     @Test
     public void testfindByUserName() throws Exception {
-        IdentityStore identityStore = createIdentityStore();
-        
-        List<User> result = identityStore.executeQuery(createFindByNameQuery(), null);
-        
-        assertFalse(result.isEmpty());
-        assertEquals(USER_USERNAME + 1, result.get(0).getKey());
+        UserQuery query = new DefaultUserQuery();
+
+        query.setName(this.user.getKey());
+
+        assertQueryResult(query);
     }
 
     /**
@@ -86,12 +85,11 @@ public class JPAUserQueryTestCase extends AbstractJPAIdentityStoreTestCase {
      */
     @Test
     public void testfindByFirstName() throws Exception {
-        IdentityStore identityStore = createIdentityStore();
-        
-        List<User> result = identityStore.executeQuery(createFindByFirstNameQuery(), null);
-        
-        assertFalse(result.isEmpty());
-        assertEquals(USER_FIRST_NAME + 1, result.get(0).getFirstName());
+        UserQuery query = new DefaultUserQuery();
+
+        query.setFirstName(this.user.getFirstName());
+
+        assertQueryResult(query);
     }
 
     /**
@@ -103,12 +101,11 @@ public class JPAUserQueryTestCase extends AbstractJPAIdentityStoreTestCase {
      */
     @Test
     public void testfindByLastName() throws Exception {
-        IdentityStore identityStore = createIdentityStore();
-        
-        List<User> result = identityStore.executeQuery(createFindByLastNameQuery(), null);
-        
-        assertFalse(result.isEmpty());
-        assertEquals(USER_LAST_NAME + 1, result.get(0).getLastName());
+        UserQuery query = new DefaultUserQuery();
+
+        query.setLastName(this.user.getLastName());
+
+        assertQueryResult(query);
     }
 
     /**
@@ -120,14 +117,13 @@ public class JPAUserQueryTestCase extends AbstractJPAIdentityStoreTestCase {
      */
     @Test
     public void testfindByEmail() throws Exception {
-        IdentityStore identityStore = createIdentityStore();
-        
-        List<User> result = identityStore.executeQuery(createFindByEmailQuery(), null);
-        
-        assertFalse(result.isEmpty());
-        assertEquals(USER_EMAIL + 1, result.get(0).getEmail());
+        UserQuery query = new DefaultUserQuery();
+
+        query.setEmail(this.user.getEmail());
+
+        assertQueryResult(query);
     }
-    
+
     /**
      * <p>
      * Tests a simple query using the role property.
@@ -137,12 +133,11 @@ public class JPAUserQueryTestCase extends AbstractJPAIdentityStoreTestCase {
      */
     @Test
     public void testfindByRole() throws Exception {
-        IdentityStore identityStore = createIdentityStore();
-        
-        List<User> result = identityStore.executeQuery(createFindByRole(), null);
-        
-        assertFalse(result.isEmpty());
-        assertEquals(USER_USERNAME + 1, result.get(0).getKey());
+        UserQuery query = new DefaultUserQuery();
+
+        query.setRole("admin" + 1);
+
+        assertQueryResult(query);
     }
 
     /**
@@ -154,12 +149,11 @@ public class JPAUserQueryTestCase extends AbstractJPAIdentityStoreTestCase {
      */
     @Test
     public void testfindByGroup() throws Exception {
-        IdentityStore identityStore = createIdentityStore();
-        
-        List<User> result = identityStore.executeQuery(createFindByGroup(), null);
-        
-        assertFalse(result.isEmpty());
-        assertEquals(USER_USERNAME + 1, result.get(0).getKey());
+        UserQuery query = new DefaultUserQuery();
+
+        query.setRelatedGroup("Administrators" + 1);
+
+        assertQueryResult(query);
     }
 
 
@@ -172,12 +166,28 @@ public class JPAUserQueryTestCase extends AbstractJPAIdentityStoreTestCase {
      */
     @Test
     public void testfindByAttributes() throws Exception {
+        UserQuery query = new DefaultUserQuery();
+
+        query.setName(this.user.getKey());
+        query.setAttributeFilter("attribute1", new String[] {"attributeValue1", "attributeValue12", "attributeValue123"});
+        query.setAttributeFilter("attribute2", new String[] {"attributeValue2", "attributeValue21", "attributeValue23"});
+
+        assertQueryResult(query);
+    }
+
+    /**
+     * <p>Asserts if the result returned by the specified {@link UserQuery} match the expected values.</p>
+     *
+     * @param query
+     */
+    private void assertQueryResult(UserQuery query) {
         IdentityStore identityStore = createIdentityStore();
-        
-        List<User> result = identityStore.executeQuery(createFindByAttributes(), null);
-        
+
+        List<User> result = identityStore.executeQuery(query, null);
+
         assertFalse(result.isEmpty());
-        assertEquals(10, result.size());
+        assertEquals(1, result.size());
+        assertEquals(this.user.getId(), result.get(0).getId());
     }
 
     /**
@@ -187,88 +197,36 @@ public class JPAUserQueryTestCase extends AbstractJPAIdentityStoreTestCase {
         IdentityStore identityStore = createIdentityStore();
 
         this.user = identityStore.getUser(USER_USERNAME + 1);
-        
+
+        // if users are already loaded then do nothing
         if (this.user != null) {
             return;
         }
-        
+
         for (int i = 0; i < 10; i++) {
             int index = i + 1;
-            
-            this.user = identityStore.createUser(USER_USERNAME + index);
+            User currentUser = identityStore.createUser(USER_USERNAME + index);
 
-            user.setEmail(USER_EMAIL + index);
-            user.setFirstName(USER_FIRST_NAME + index);
-            user.setLastName(USER_LAST_NAME + index);
-            
+            // store the instance used for testing
+            if (this.user == null) {
+                this.user = currentUser;
+            }
+
+            currentUser.setEmail(USER_EMAIL + index);
+            currentUser.setFirstName(USER_FIRST_NAME + index);
+            currentUser.setLastName(USER_LAST_NAME + index);
+
             Role role = identityStore.createRole("admin" + index);
             Group group = identityStore.createGroup("Administrators" + index, null);
 
             identityStore.createMembership(role, user, group);
-            
-            this.user.setAttribute("attribute1", "attributeValue1");
-            this.user.setAttribute("attribute1", "attributeValue12");
-            this.user.setAttribute("attribute1", "attributeValue123");
-            
-            this.user.setAttribute("attribute2", "attributeValue2");
-        }
-    }
 
-    private UserQuery createFindByNameQuery() {
-        UserQuery query = new DefaultUserQuery();
-        
-        query.setName(USER_USERNAME + 1);
-        
-        return query;
-    }
-    
-    private UserQuery createFindByFirstNameQuery() {
-        UserQuery query = new DefaultUserQuery();
-        
-        query.setFirstName(USER_FIRST_NAME + 1);
-        
-        return query;
-    }
-    
-    private UserQuery createFindByLastNameQuery() {
-        UserQuery query = new DefaultUserQuery();
-        
-        query.setLastName(USER_LAST_NAME + 1);
-        
-        return query;
-    }
-    
-    private UserQuery createFindByRole() {
-        UserQuery query = new DefaultUserQuery();
-        
-        query.setRole("admin" + 1);
-        
-        return query;
-    }
-    
-    private UserQuery createFindByGroup() {
-        UserQuery query = new DefaultUserQuery();
-        
-        query.setRelatedGroup("Administrators" + 1);
-        
-        return query;
-    }
-    
-    private UserQuery createFindByAttributes() {
-        UserQuery query = new DefaultUserQuery();
-        
-        query.setAttributeFilter("attribute1", new String[] {"attributeValue1", "attributeValue12", "attributeValue123"});
-        query.setAttributeFilter("attribute2", new String[] {"attributeValue2", "attributeValue21", "attributeValue23"});
-        
-        return query;
-    }
-    
-    private UserQuery createFindByEmailQuery() {
-        UserQuery query = new DefaultUserQuery();
-        
-        query.setEmail(USER_EMAIL + 1);
-        
-        return query;
+            currentUser.setAttribute("attribute1", "attributeValue1");
+            currentUser.setAttribute("attribute1", "attributeValue12");
+            currentUser.setAttribute("attribute1", "attributeValue123");
+
+            currentUser.setAttribute("attribute2", "attributeValue2");
+        }
     }
 
 }

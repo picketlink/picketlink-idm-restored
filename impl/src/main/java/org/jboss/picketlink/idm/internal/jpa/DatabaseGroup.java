@@ -34,6 +34,8 @@ import javax.persistence.OneToMany;
 import org.jboss.picketlink.idm.model.Group;
 
 /**
+ * <p>JPA Entity that maps {@link Group} instances.</p>
+ *
  * @author <a href="mailto:psilva@redhat.com">Pedro Silva</a>
  *
  */
@@ -43,12 +45,12 @@ public class DatabaseGroup extends AbstractDatabaseIdentityType<DatabaseGroupAtt
 
     private String name;
 
+    @ManyToOne
+    private DatabaseGroup parentGroup;
+
     @OneToMany(mappedBy = "group", cascade = CascadeType.ALL)
     private List<DatabaseGroupAttribute> ownerAttributes = new ArrayList<DatabaseGroupAttribute>();
 
-    @ManyToOne
-    private DatabaseGroup parentGroup;
-    
     @OneToMany(mappedBy = "group", cascade = CascadeType.ALL)
     private List<DatabaseMembership> memberships = new ArrayList<DatabaseMembership>();
 
@@ -81,7 +83,7 @@ public class DatabaseGroup extends AbstractDatabaseIdentityType<DatabaseGroupAtt
     public void setOwnerAttributes(List<DatabaseGroupAttribute> ownerAttributes) {
         this.ownerAttributes = ownerAttributes;
     }
- 
+
     /**
      * @return the memberships
      */
@@ -105,6 +107,4 @@ public class DatabaseGroup extends AbstractDatabaseIdentityType<DatabaseGroupAtt
     protected DatabaseGroupAttribute createAttribute(String name, String value) {
         return new DatabaseGroupAttribute(name, value);
     }
-
-    // TODO: implement hashcode and equals methods
 }
