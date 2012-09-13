@@ -411,10 +411,13 @@ public class DirContextAdaptor implements DirContext, IdentityType {
     public String[] getAttributeValues(String name) {
         try {
             Attribute theAttribute = attributes.get(name);
-            return (String[]) theAttribute.get();
+            if (theAttribute != null) {
+                return (String[]) theAttribute.get();
+            }
         } catch (NamingException e) {
             throw new RuntimeException(e);
         }
+        return null;
     }
 
     @SuppressWarnings("unchecked")

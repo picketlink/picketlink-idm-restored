@@ -40,7 +40,9 @@ import org.apache.commons.lang.builder.ToStringBuilder;
 import org.jboss.picketlink.idm.model.IdentityType;
 
 /**
- * <p>Base class for {@link IdentityType} implementations.</p>
+ * <p>
+ * Base class for {@link IdentityType} implementations.
+ * </p>
  *
  * @author <a href="mailto:psilva@redhat.com">Pedro Silva</a>
  *
@@ -82,7 +84,9 @@ public abstract class AbstractDatabaseIdentityType<A extends AbstractDatabaseAtt
         this.id = id;
     }
 
-    /* (non-Javadoc)
+    /*
+     * (non-Javadoc)
+     *
      * @see org.jboss.picketlink.idm.model.IdentityType#getKey()
      */
     @Override
@@ -94,7 +98,9 @@ public abstract class AbstractDatabaseIdentityType<A extends AbstractDatabaseAtt
         this.key = key;
     }
 
-    /* (non-Javadoc)
+    /*
+     * (non-Javadoc)
+     *
      * @see org.jboss.picketlink.idm.model.IdentityType#isEnabled()
      */
     @Override
@@ -109,7 +115,9 @@ public abstract class AbstractDatabaseIdentityType<A extends AbstractDatabaseAtt
         this.enabled = enabled;
     }
 
-    /* (non-Javadoc)
+    /*
+     * (non-Javadoc)
+     *
      * @see org.jboss.picketlink.idm.model.IdentityType#getExpirationDate()
      */
     @Override
@@ -124,7 +132,9 @@ public abstract class AbstractDatabaseIdentityType<A extends AbstractDatabaseAtt
         this.expirationDate = expirationDate;
     }
 
-    /* (non-Javadoc)
+    /*
+     * (non-Javadoc)
+     *
      * @see org.jboss.picketlink.idm.model.IdentityType#getCreationDate()
      */
     @Override
@@ -139,7 +149,9 @@ public abstract class AbstractDatabaseIdentityType<A extends AbstractDatabaseAtt
         this.creationDate = creationDate;
     }
 
-    /* (non-Javadoc)
+    /*
+     * (non-Javadoc)
+     *
      * @see org.jboss.picketlink.idm.model.IdentityType#setAttribute(java.lang.String, java.lang.String)
      */
     @SuppressWarnings("unchecked")
@@ -156,14 +168,18 @@ public abstract class AbstractDatabaseIdentityType<A extends AbstractDatabaseAtt
     }
 
     /**
-     * <p>Subclasses must override this methid to provide the {@link List} of attributes associated with this type.</p>
+     * <p>
+     * Subclasses must override this methid to provide the {@link List} of attributes associated with this type.
+     * </p>
      *
      * @return the userAttributes
      */
     public abstract List<A> getOwnerAttributes();
 
     /**
-     * <p>Subclasses must override this method to instantiate the right {@link AbstractDatabaseAttribute} implementation. </p>
+     * <p>
+     * Subclasses must override this method to instantiate the right {@link AbstractDatabaseAttribute} implementation.
+     * </p>
      *
      * @param name
      * @param value
@@ -172,7 +188,9 @@ public abstract class AbstractDatabaseIdentityType<A extends AbstractDatabaseAtt
     protected abstract A createAttribute(String name, String value);
 
     /**
-     * <p>This method converts the {@link List} of the attributes associated with this type into a {@link Map}.</p>
+     * <p>
+     * This method converts the {@link List} of the attributes associated with this type into a {@link Map}.
+     * </p>
      *
      * @return
      */
@@ -200,7 +218,9 @@ public abstract class AbstractDatabaseIdentityType<A extends AbstractDatabaseAtt
         return this.userAttributesMap;
     }
 
-    /* (non-Javadoc)
+    /*
+     * (non-Javadoc)
+     *
      * @see org.jboss.picketlink.idm.model.IdentityType#setAttribute(java.lang.String, java.lang.String[])
      */
     @SuppressWarnings("unchecked")
@@ -217,7 +237,9 @@ public abstract class AbstractDatabaseIdentityType<A extends AbstractDatabaseAtt
         }
     }
 
-    /* (non-Javadoc)
+    /*
+     * (non-Javadoc)
+     *
      * @see org.jboss.picketlink.idm.model.IdentityType#removeAttribute(java.lang.String)
      */
     @SuppressWarnings("unchecked")
@@ -233,7 +255,9 @@ public abstract class AbstractDatabaseIdentityType<A extends AbstractDatabaseAtt
         }
     }
 
-    /* (non-Javadoc)
+    /*
+     * (non-Javadoc)
+     *
      * @see org.jboss.picketlink.idm.model.IdentityType#getAttribute(java.lang.String)
      */
     @Override
@@ -248,7 +272,9 @@ public abstract class AbstractDatabaseIdentityType<A extends AbstractDatabaseAtt
         return null;
     }
 
-    /* (non-Javadoc)
+    /*
+     * (non-Javadoc)
+     *
      * @see org.jboss.picketlink.idm.model.IdentityType#getAttributeValues(java.lang.String)
      */
     @Override
@@ -257,7 +283,9 @@ public abstract class AbstractDatabaseIdentityType<A extends AbstractDatabaseAtt
         return getUserAttributesMap().get(name);
     }
 
-    /* (non-Javadoc)
+    /*
+     * (non-Javadoc)
+     *
      * @see org.jboss.picketlink.idm.model.IdentityType#getAttributes()
      */
     @Override

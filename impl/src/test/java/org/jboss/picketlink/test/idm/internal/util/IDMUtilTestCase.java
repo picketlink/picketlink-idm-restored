@@ -19,37 +19,31 @@
  * Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
  * 02110-1301 USA, or see the FSF site: http://www.fsf.org.
  */
-package org.jboss.picketlink.idm.internal.ldap;
+package org.jboss.picketlink.test.idm.internal.util;
 
-import java.io.Serializable;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.Map;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
+
+import org.jboss.picketlink.idm.internal.util.IDMUtil;
+import org.junit.Test;
 
 /**
- * Attributes of an {@link LDAPUser} that does not map to LDAP managed attributes
+ * Unit test {@link IDMUtil}
  *
  * @author anil saldhana
- * @since Sep 7, 2012
+ * @since Sep 13, 2012
  */
-public class LDAPUserCustomAttributes implements Serializable {
-    private static final long serialVersionUID = 1L;
+public class IDMUtilTestCase {
+    @Test
+    public void arrMatch() throws Exception {
+        String[] a1 = { "1", "2", "3", "4" };
+        String[] a2 = { "1", "3", "4", "2", };
+        String[] a3 = { "2", "3", "4" };
+        String[] a4 = { "3", "2", "4" };
 
-    private Map<String, Object> attributes = new HashMap<String, Object>();
-
-    public void addAttribute(String key, Object value) {
-        attributes.put(key, value);
-    }
-
-    public Map<String, Object> getAttributes() {
-        return Collections.unmodifiableMap(attributes);
-    }
-
-    public String getDN() {
-        return "cn=custom-attributes";
-    }
-
-    public Object getAttribute(String name) {
-        return attributes.get(name);
+        assertTrue(IDMUtil.arraysEqual(a1, a2));
+        assertTrue(IDMUtil.arraysEqual(a3, a4));
+        assertFalse(IDMUtil.arraysEqual(a1, a4));
+        assertFalse(IDMUtil.arraysEqual(a2, a3));
     }
 }

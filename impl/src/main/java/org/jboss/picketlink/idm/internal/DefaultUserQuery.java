@@ -19,34 +19,74 @@
  * Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
  * 02110-1301 USA, or see the FSF site: http://www.fsf.org.
  */
+package org.jboss.picketlink.idm.internal;
 
-package org.jboss.picketlink.idm.internal.jpa;
-
+import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+
 import org.jboss.picketlink.idm.model.Group;
 import org.jboss.picketlink.idm.model.Role;
-import org.jboss.picketlink.idm.model.SimpleGroup;
-import org.jboss.picketlink.idm.model.SimpleRole;
 import org.jboss.picketlink.idm.model.User;
+import org.jboss.picketlink.idm.query.Range;
 import org.jboss.picketlink.idm.query.UserQuery;
+import org.jboss.picketlink.idm.spi.IdentityStore;
 
 /**
- * @author <a href="mailto:psilva@redhat.com">Pedro Silva</a>
+ * An implementation of {@link UserQuery} that delegates to the store
  *
+ * @author anil saldhana
+ * @since Sep 13, 2012
  */
-public class DefaultUserQuery extends AbstractQuery<DefaultUserQuery> implements UserQuery {
+public class DefaultUserQuery implements UserQuery {
 
+    protected IdentityStore store = null;
+    private String name;
     private Group relatedGroup;
-    private String relatedGroupId;
+    private String relatedGroupID;
     private Role role;
     private String roleName;
+
+    private Map<String, String[]> filters = new HashMap<String, String[]>();
     private String firstName;
     private String lastName;
     private String email;
+    private boolean enabled;
+    private Range range;
+
+    public IdentityStore getStore() {
+        return store;
+    }
+
+    public void setStore(IdentityStore store) {
+        this.store = store;
+    }
+
+    @Override
+    public UserQuery reset() {
+        return null;
+    }
+
+    @Override
+    public UserQuery getImmutable() {
+        return null;
+    }
 
     @Override
     public List<User> executeQuery(UserQuery query) {
         return null;
+    }
+
+    @Override
+    public UserQuery setName(String name) {
+        this.name = name;
+        return this;
+    }
+
+    @Override
+    public String getName() {
+        return name;
     }
 
     @Override
@@ -57,21 +97,13 @@ public class DefaultUserQuery extends AbstractQuery<DefaultUserQuery> implements
 
     @Override
     public UserQuery setRelatedGroup(String groupId) {
-        this.relatedGroupId = groupId;
+        this.relatedGroupID = groupId;
         return this;
     }
 
     @Override
     public Group getRelatedGroup() {
-        if (this.relatedGroup != null) {
-            return relatedGroup;
-        }
-
-        if (this.relatedGroupId == null) {
-            return null;
-        }
-
-        return new SimpleGroup(null, this.relatedGroupId, null);
+        return relatedGroup;
     }
 
     @Override
@@ -88,15 +120,18 @@ public class DefaultUserQuery extends AbstractQuery<DefaultUserQuery> implements
 
     @Override
     public Role getRole() {
-        if (this.role != null) {
-            return this.role;
-        }
+        return role;
+    }
 
-        if (this.roleName == null) {
-            return null;
-        }
+    @Override
+    public UserQuery setAttributeFilter(String name, String[] values) {
+        filters.put(name, values);
+        return this;
+    }
 
-        return new SimpleRole(this.roleName);
+    @Override
+    public Map<String, String[]> getAttributeFilters() {
+        return Collections.unmodifiableMap(filters);
     }
 
     @Override
@@ -107,7 +142,7 @@ public class DefaultUserQuery extends AbstractQuery<DefaultUserQuery> implements
 
     @Override
     public String getFirstName() {
-        return this.firstName;
+        return firstName;
     }
 
     @Override
@@ -129,12 +164,37 @@ public class DefaultUserQuery extends AbstractQuery<DefaultUserQuery> implements
 
     @Override
     public String getEmail() {
-        return this.email;
+        return email;
+    }
+
+    @Override
+    public UserQuery setEnabled(boolean enabled) {
+        this.enabled = enabled;
+        return this;
+    }
+
+    @Override
+    public boolean getEnabled() {
+        return enabled;
+    }
+
+    @Override
+    public UserQuery sort(boolean ascending) {
+        return null;
+    }
+
+    @Override
+    public void setRange(Range range) {
+        this.range = range;
+    }
+
+    @Override
+    public Range getRange() {
+        return range;
     }
 
     @Override
     public List<User> executeQuery() {
-        throw new RuntimeException();
+        return store.executeQuery(this, null);
     }
-
 }

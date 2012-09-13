@@ -30,6 +30,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Properties;
+import java.util.Set;
 
 import javax.naming.Context;
 import javax.naming.NameNotFoundException;
@@ -54,6 +55,7 @@ import org.jboss.picketlink.idm.internal.ldap.LDAPUser;
 import org.jboss.picketlink.idm.internal.ldap.LDAPUserCustomAttributes;
 import org.jboss.picketlink.idm.internal.ldap.ManagedAttributeLookup;
 import org.jboss.picketlink.idm.model.DefaultMembership;
+import org.jboss.picketlink.idm.internal.util.IDMUtil;
 import org.jboss.picketlink.idm.model.Group;
 import org.jboss.picketlink.idm.model.Membership;
 import org.jboss.picketlink.idm.model.Role;
@@ -126,6 +128,7 @@ public class LDAPIdentityStore implements IdentityStore, LDAPChangeNotificationH
     @Override
     public User createUser(String name) {
         LDAPUser user = new LDAPUser();
+        user.setLookup(this);
         user.setLDAPChangeNotificationHandler(this);
 
         user.setFullName(name);
@@ -137,6 +140,8 @@ public class LDAPIdentityStore implements IdentityStore, LDAPChangeNotificationH
 
         // TODO: How do we get the userid?
         String userid = generateUserID(firstName, lastName);
+        user.setId(userid);
+        user.setUserDNSuffix(userDNSuffix);
 
         try {
             ctx.bind(UID + "=" + userid + COMMA + userDNSuffix, user);
@@ -341,8 +346,57 @@ public class LDAPIdentityStore implements IdentityStore, LDAPChangeNotificationH
 
     @Override
     public List<User> executeQuery(UserQuery query, Range range) {
-        // TODO Auto-generated method stub
-        return null;
+        // TODO: Deal with range
+
+        List<User> users = new ArrayList<User>();
+        Map<String, String[]> filters = query.getAttributeFilters();
+        if (filters != null) {
+            // we are dealing with attributes
+            // Get all the managed attributes first to do the search
+            Attributes matchAttrs = getManagedAttributes(filters);
+            if (matchAttrs.size() == 0) {
+                // go for custom attributes
+                List<User> allUsers = getAllUsers();
+                for (User theUser : allUsers) {
+                    if (userHasRequiredAttributes((LDAPUser) theUser, filters)) {
+                        users.add(theUser);
+                    }
+                }
+                return users;
+            }
+
+            // Perform the search
+            try {
+                NamingEnumeration<SearchResult> answer = ctx.search(userDNSuffix, matchAttrs);
+                while (answer.hasMore()) {
+                    SearchResult sr = answer.next();
+                    Attributes attributes = sr.getAttributes();
+
+                    LDAPUser user = new LDAPUser();
+                    user.setLookup(this);
+                    user.setUserDNSuffix(userDNSuffix);
+                    user.addAllLDAPAttributes(attributes);
+
+                    user.setLDAPChangeNotificationHandler(this);
+
+                    // Get the custom attributes
+                    String customDN = user.getCustomAttributes().getDN() + COMMA + user.getDN();
+                    try {
+                        LDAPUserCustomAttributes lca = (LDAPUserCustomAttributes) ctx.lookup(customDN);
+                        if (lca != null) {
+                            user.setCustomAttributes(lca);
+                        }
+                    } catch (Exception ignore) {
+                    }
+                    if (userHasRequiredAttributes(user, filters)) {
+                        users.add(user);
+                    }
+                }
+            } catch (NamingException e) {
+                throw new RuntimeException(e);
+            }
+        }
+        return users;
     }
 
     @Override
@@ -644,5 +698,62 @@ public class LDAPIdentityStore implements IdentityStore, LDAPChangeNotificationH
         }
 
         return false;
+    }
+
+    private Attributes getManagedAttributes(Map<String, String[]> filters) {
+        Attributes attr = new BasicAttributes(true);
+        Set<String> keys = filters.keySet();
+        for (String key : keys) {
+            if (isManaged(key)) {
+                attr.put(key, filters.get(key));
+            }
+        }
+        return attr;
+    }
+
+    private boolean userHasRequiredAttributes(LDAPUser user, Map<String, String[]> filters) {
+        Set<String> keys = filters.keySet();
+
+        for (String key : keys) {
+            String[] values = filters.get(key);
+            String[] attValues = user.getAttributeValues(key);
+            if (IDMUtil.arraysEqual(values, attValues) == false) {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    private List<User> getAllUsers() {
+        List<User> users = new ArrayList<User>();
+        // Perform the search
+        try {
+            Attributes attr = new BasicAttributes(true);
+            NamingEnumeration<SearchResult> answer = ctx.search(userDNSuffix, attr);
+            while (answer.hasMore()) {
+                SearchResult sr = answer.next();
+                Attributes attributes = sr.getAttributes();
+                LDAPUser user = new LDAPUser();
+                user.setLookup(this);
+                user.setUserDNSuffix(userDNSuffix);
+                user.addAllLDAPAttributes(attributes);
+
+                user.setLDAPChangeNotificationHandler(this);
+
+                // Get the custom attributes
+                String customDN = user.getCustomAttributes().getDN() + COMMA + user.getDN();
+                try {
+                    LDAPUserCustomAttributes lca = (LDAPUserCustomAttributes) ctx.lookup(customDN);
+                    if (lca != null) {
+                        user.setCustomAttributes(lca);
+                    }
+                } catch (Exception ignore) {
+                }
+                users.add(user);
+            }
+        } catch (NamingException e) {
+            throw new RuntimeException(e);
+        }
+        return users;
     }
 }

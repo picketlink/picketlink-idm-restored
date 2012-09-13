@@ -46,6 +46,8 @@ public interface UserQuery {
 
     UserQuery getImmutable();
 
+    List<User> executeQuery();
+
     List<User> executeQuery(UserQuery query);
 
     // Conditions

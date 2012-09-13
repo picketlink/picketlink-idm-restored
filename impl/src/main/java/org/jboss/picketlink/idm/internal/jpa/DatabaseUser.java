@@ -34,7 +34,9 @@ import javax.persistence.Transient;
 import org.jboss.picketlink.idm.model.User;
 
 /**
- * <p>JPA Entity that maps {@link User} instances.</p>
+ * <p>
+ * JPA Entity that maps {@link User} instances.
+ * </p>
  *
  * @author <a href="mailto:psilva@redhat.com">Pedro Silva</a>
  *

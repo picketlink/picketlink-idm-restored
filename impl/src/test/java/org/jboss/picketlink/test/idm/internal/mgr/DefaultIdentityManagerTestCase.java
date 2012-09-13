@@ -29,6 +29,7 @@ import java.io.ByteArrayInputStream;
 import java.io.InputStream;
 import java.security.cert.CertificateFactory;
 import java.security.cert.X509Certificate;
+import java.util.List;
 import java.util.Map;
 
 import org.jboss.picketlink.idm.internal.DefaultIdentityManager;
@@ -37,6 +38,7 @@ import org.jboss.picketlink.idm.internal.config.LDAPConfiguration;
 import org.jboss.picketlink.idm.internal.config.LDAPConfigurationBuilder;
 import org.jboss.picketlink.idm.internal.util.Base64;
 import org.jboss.picketlink.idm.model.User;
+import org.jboss.picketlink.idm.query.UserQuery;
 import org.jboss.picketlink.idm.spi.IdentityStoreConfigurationBuilder;
 import org.junit.Before;
 import org.junit.Test;
@@ -109,6 +111,13 @@ public class DefaultIdentityManagerTestCase extends AbstractLDAPTest {
 
         cert = (X509Certificate) cf.generateCertificate(new ByteArrayInputStream(certBytes));
         assertNotNull(cert);
+
+        // Let us do UserQuery search
+        UserQuery query = im.createUserQuery().setAttributeFilter("QuestionTotal", new String[] { "2" });
+
+        List<User> returnedUsers = query.executeQuery();
+        assertNotNull(returnedUsers);
+        assertEquals(1, returnedUsers.size());
 
         im.removeUser(anil);
         anil = im.getUser("Anil Saldhana");

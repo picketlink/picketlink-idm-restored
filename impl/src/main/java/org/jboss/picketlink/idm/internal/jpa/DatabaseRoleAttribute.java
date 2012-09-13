@@ -28,7 +28,9 @@ import javax.persistence.ManyToOne;
 import org.jboss.picketlink.idm.model.Role;
 
 /**
- * <p>Implementation of {@link AbstractDatabaseAttribute} to manage {@link Role} attributes.</p>
+ * <p>
+ * Implementation of {@link AbstractDatabaseAttribute} to manage {@link Role} attributes.
+ * </p>
  *
  * @author <a href="mailto:psilva@redhat.com">Pedro Silva</a>
  *
@@ -61,7 +63,9 @@ public class DatabaseRoleAttribute extends AbstractDatabaseAttribute<DatabaseRol
         this.role = role;
     }
 
-    /* (non-Javadoc)
+    /*
+     * (non-Javadoc)
+     *
      * @see org.jboss.picketlink.idm.internal.jpa.AbstractDatabaseAttribute#getIdentityType()
      */
     @Override
@@ -69,8 +73,12 @@ public class DatabaseRoleAttribute extends AbstractDatabaseAttribute<DatabaseRol
         return this.role;
     }
 
-    /* (non-Javadoc)
-     * @see org.jboss.picketlink.idm.internal.jpa.AbstractDatabaseAttribute#setIdentityType(org.jboss.picketlink.idm.model.IdentityType)
+    /*
+     * (non-Javadoc)
+     *
+     * @see
+     * org.jboss.picketlink.idm.internal.jpa.AbstractDatabaseAttribute#setIdentityType(org.jboss.picketlink.idm.model.IdentityType
+     * )
      */
     @Override
     protected void setIdentityType(DatabaseRole identityType) {
