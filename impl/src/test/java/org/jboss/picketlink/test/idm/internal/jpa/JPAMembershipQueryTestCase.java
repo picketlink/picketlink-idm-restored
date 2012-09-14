@@ -75,7 +75,7 @@ public class JPAMembershipQueryTestCase extends AbstractJPAIdentityStoreTestCase
      */
     @Test
     public void testfindByGroup() throws Exception {
-        MembershipQuery query = new DefaultMembershipQuery();
+        MembershipQuery query = createMembershipQuery();
 
         query.setGroup(this.group);
 
@@ -91,7 +91,7 @@ public class JPAMembershipQueryTestCase extends AbstractJPAIdentityStoreTestCase
      */
     @Test
     public void testfindByRole() throws Exception {
-        MembershipQuery query = new DefaultMembershipQuery();
+        MembershipQuery query = createMembershipQuery();
 
         query.setRole(this.role);
 
@@ -107,7 +107,7 @@ public class JPAMembershipQueryTestCase extends AbstractJPAIdentityStoreTestCase
      */
     @Test
     public void testfindByUser() throws Exception {
-        MembershipQuery query = new DefaultMembershipQuery();
+        MembershipQuery query = createMembershipQuery();
 
         query.setUser(this.user);
 
@@ -156,6 +156,10 @@ public class JPAMembershipQueryTestCase extends AbstractJPAIdentityStoreTestCase
         assertEquals(this.role.getName(), result.get(0).getRole().getName());
         assertEquals(this.group.getId(), result.get(0).getGroup().getId());
         assertEquals(this.user.getId(), result.get(0).getUser().getId());
+    }
+
+    private DefaultMembershipQuery createMembershipQuery() {
+        return new DefaultMembershipQuery(createIdentityStore());
     }
 
 }

@@ -19,54 +19,31 @@
  * Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
  * 02110-1301 USA, or see the FSF site: http://www.fsf.org.
  */
-package org.jboss.picketlink.idm.query;
+package org.jboss.picketlink.test.idm.internal.util;
 
-import java.util.List;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
 
-import org.jboss.picketlink.idm.model.Group;
-import org.jboss.picketlink.idm.model.Membership;
-import org.jboss.picketlink.idm.model.Role;
-import org.jboss.picketlink.idm.model.User;
+import org.jboss.picketlink.idm.internal.util.IDMUtil;
+import org.junit.Test;
 
 /**
- * MembershipQuery. All applied conditions will be resolved with logical AND.
+ * Unit test {@link IDMUtil}
+ *
+ * @author anil saldhana
+ * @since Sep 13, 2012
  */
-public interface MembershipQuery {
-    // TODO: Javadocs
-    // TODO: Exceptions
+public class IDMUtilTestCase {
+    @Test
+    public void arrMatch() throws Exception {
+        String[] a1 = { "1", "2", "3", "4" };
+        String[] a2 = { "1", "3", "4", "2", };
+        String[] a3 = { "2", "3", "4" };
+        String[] a4 = { "3", "2", "4" };
 
-    // Operations
-
-    MembershipQuery reset();
-
-    MembershipQuery immutable();
-
-    List<Membership> executeQuery();
-    
-    List<Membership> executeQuery(MembershipQuery query);
-
-    // Conditions
-
-    MembershipQuery setUser(User user);
-
-    MembershipQuery setUser(String user);
-
-    User getUser();
-
-    MembershipQuery setGroup(Group group);
-
-    MembershipQuery setGroup(String groupId);
-
-    Group getGroup();
-
-    MembershipQuery setRole(Role role);
-
-    MembershipQuery setRole(String role);
-
-    Role getRole();
-
-    void setRange(Range range);
-
-    Range getRange();
-
+        assertTrue(IDMUtil.arraysEqual(a1, a2));
+        assertTrue(IDMUtil.arraysEqual(a3, a4));
+        assertFalse(IDMUtil.arraysEqual(a1, a4));
+        assertFalse(IDMUtil.arraysEqual(a2, a3));
+    }
 }

@@ -92,6 +92,27 @@ public class LDAPUser extends DirContextAdaptor implements User {
     }
 
     @Override
+    public String getAttribute(String name) {
+        if (lookup.isManaged(name) == false) {
+            return (String) customAttributes.getAttribute(name);
+        }
+        return super.getAttribute(name);
+    }
+
+    @Override
+    public String[] getAttributeValues(String name) {
+        if (lookup.isManaged(name) == false) {
+            Object value = customAttributes.getAttribute(name);
+            if (value instanceof String[]) {
+                return (String[]) value;
+            } else {
+                return new String[] { (String) value };
+            }
+        }
+        return super.getAttributeValues(name);
+    }
+
+    @Override
     public Map<String, String[]> getAttributes() {
         Map<String, String[]> map = super.getAttributes();
         Map<String, Object> values = customAttributes.getAttributes();

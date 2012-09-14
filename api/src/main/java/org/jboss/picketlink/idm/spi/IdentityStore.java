@@ -186,10 +186,10 @@ public interface IdentityStore {
      * @return map of attribute names and their values
      */
     Map<String, String[]> getAttributes(Role role);
-    
+
     /**
-     * <p>Creates a {@link RoleQuery} instance.</p>
-     * 
+     * <p>Creates a {@link MembershipQuery} instance.</p>
+     *
      * @return
      */
     MembershipQuery createMembershipQuery();

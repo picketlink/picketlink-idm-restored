@@ -39,7 +39,7 @@ public class DefaultRoleQuery extends AbstractQuery<DefaultRoleQuery> implements
 
     private IdentityStore store;
     private Group group;
-    
+
     public DefaultRoleQuery(IdentityStore jpaIdentityStore) {
         this.store = jpaIdentityStore;
     }

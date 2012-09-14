@@ -68,7 +68,9 @@ public class JPAIdentityStore implements IdentityStore {
 
     private JPATemplate jpaTemplate;
 
-    /* (non-Javadoc)
+    /*
+     * (non-Javadoc)
+     *
      * @see org.jboss.picketlink.idm.spi.IdentityStore#createUser(java.lang.String)
      */
     @Override
@@ -80,7 +82,9 @@ public class JPAIdentityStore implements IdentityStore {
         return newUser;
     }
 
-    /* (non-Javadoc)
+    /*
+     * (non-Javadoc)
+     *
      * @see org.jboss.picketlink.idm.spi.IdentityStore#removeUser(org.jboss.picketlink.idm.model.User)
      */
     @Override
@@ -96,7 +100,9 @@ public class JPAIdentityStore implements IdentityStore {
         return (User) findIdentityTypeByKey(name, NamedQueries.USER_LOAD_BY_KEY);
     }
 
-    /* (non-Javadoc)
+    /*
+     * (non-Javadoc)
+     *
      * @see org.jboss.picketlink.idm.spi.IdentityStore#createGroup(java.lang.String, org.jboss.picketlink.idm.model.Group)
      */
     @Override
@@ -110,7 +116,9 @@ public class JPAIdentityStore implements IdentityStore {
         return newGroup;
     }
 
-    /* (non-Javadoc)
+    /*
+     * (non-Javadoc)
+     *
      * @see org.jboss.picketlink.idm.spi.IdentityStore#removeGroup(org.jboss.picketlink.idm.model.Group)
      */
     @Override
@@ -382,7 +390,7 @@ public class JPAIdentityStore implements IdentityStore {
                     Join<DatabaseMembership, DatabaseGroup> joinRole = join.join("group");
                     predicates.add(criteriaBuilder.equal(joinRole.get("id"), query.getGroup().getId()));
                 }
-                
+
                 if (query.getAttributeFilters() != null) {
                     Set<Entry<String, String[]>> entrySet = query.getAttributeFilters().entrySet();
 
@@ -511,8 +519,8 @@ public class JPAIdentityStore implements IdentityStore {
     public MembershipQuery createMembershipQuery() {
         return new DefaultMembershipQuery(this);
     }
- 
-    
+
+
     public void setJpaTemplate(JPATemplate jpaTemplate) {
         this.jpaTemplate = jpaTemplate;
     }
@@ -597,5 +605,5 @@ public class JPAIdentityStore implements IdentityStore {
             }
         });
     }
-    
+
 }

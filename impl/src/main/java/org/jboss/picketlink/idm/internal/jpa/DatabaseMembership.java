@@ -15,7 +15,9 @@ import org.jboss.picketlink.idm.model.Role;
 import org.jboss.picketlink.idm.model.User;
 
 /**
- * <p>JPA Entity that maps {@link Membership} instances.</p>
+ * <p>
+ * JPA Entity that maps {@link Membership} instances.
+ * </p>
  *
  * @author <a href="mailto:psilva@redhat.com">Pedro Silva</a>
  *

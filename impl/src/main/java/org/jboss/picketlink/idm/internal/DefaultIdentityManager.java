@@ -193,7 +193,9 @@ public class DefaultIdentityManager implements IdentityManager {
 
     @Override
     public UserQuery createUserQuery() {
-        throw new RuntimeException();
+        DefaultUserQuery userQuery = new DefaultUserQuery();
+        userQuery.setStore(store);
+        return userQuery;
     }
 
     @Override

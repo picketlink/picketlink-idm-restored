@@ -34,7 +34,9 @@ import javax.persistence.OneToMany;
 import org.jboss.picketlink.idm.model.Group;
 
 /**
- * <p>JPA Entity that maps {@link Group} instances.</p>
+ * <p>
+ * JPA Entity that maps {@link Group} instances.
+ * </p>
  *
  * @author <a href="mailto:psilva@redhat.com">Pedro Silva</a>
  *
