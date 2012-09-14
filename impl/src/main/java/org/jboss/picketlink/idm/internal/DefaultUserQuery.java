@@ -28,6 +28,8 @@ import java.util.Map;
 
 import org.jboss.picketlink.idm.model.Group;
 import org.jboss.picketlink.idm.model.Role;
+import org.jboss.picketlink.idm.model.SimpleGroup;
+import org.jboss.picketlink.idm.model.SimpleRole;
 import org.jboss.picketlink.idm.model.User;
 import org.jboss.picketlink.idm.query.Range;
 import org.jboss.picketlink.idm.query.UserQuery;
@@ -52,7 +54,7 @@ public class DefaultUserQuery implements UserQuery {
     private String firstName;
     private String lastName;
     private String email;
-    private boolean enabled;
+    private boolean enabled = true;
     private Range range;
 
     public IdentityStore getStore() {
@@ -103,7 +105,15 @@ public class DefaultUserQuery implements UserQuery {
 
     @Override
     public Group getRelatedGroup() {
-        return relatedGroup;
+        if (this.relatedGroup != null) {
+            return relatedGroup;
+        }
+
+        if (this.relatedGroupID == null) {
+            return null;
+        }
+
+        return new SimpleGroup(null, this.relatedGroupID, null);
     }
 
     @Override
@@ -120,7 +130,15 @@ public class DefaultUserQuery implements UserQuery {
 
     @Override
     public Role getRole() {
-        return role;
+        if (this.role != null) {
+            return this.role;
+        }
+
+        if (this.roleName == null) {
+            return null;
+        }
+
+        return new SimpleRole(this.roleName);
     }
 
     @Override

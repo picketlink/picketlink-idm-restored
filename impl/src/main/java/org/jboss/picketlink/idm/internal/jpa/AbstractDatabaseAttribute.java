@@ -24,6 +24,7 @@ package org.jboss.picketlink.idm.internal.jpa;
 
 import javax.persistence.GeneratedValue;
 import javax.persistence.Id;
+import javax.persistence.Lob;
 import javax.persistence.MappedSuperclass;
 
 import org.apache.commons.lang.builder.EqualsBuilder;
@@ -48,6 +49,8 @@ public abstract class AbstractDatabaseAttribute<OWNER extends IdentityType> {
     private long id;
 
     private String name;
+
+    @Lob
     private String value;
 
     public AbstractDatabaseAttribute() {
