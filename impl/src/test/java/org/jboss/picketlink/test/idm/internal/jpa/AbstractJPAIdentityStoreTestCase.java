@@ -49,7 +49,7 @@ import org.junit.BeforeClass;
  */
 public abstract class AbstractJPAIdentityStoreTestCase {
 
-    private static EntityManagerFactory emf;
+    protected static EntityManagerFactory emf;
 
     protected EntityManager entityManager;
 
