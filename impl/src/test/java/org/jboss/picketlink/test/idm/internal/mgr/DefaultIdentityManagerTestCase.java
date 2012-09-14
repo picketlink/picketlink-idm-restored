@@ -22,8 +22,10 @@
 package org.jboss.picketlink.test.idm.internal.mgr;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertTrue;
 
 import java.io.ByteArrayInputStream;
 import java.io.InputStream;
@@ -111,6 +113,15 @@ public class DefaultIdentityManagerTestCase extends AbstractLDAPTest {
 
         cert = (X509Certificate) cf.generateCertificate(new ByteArrayInputStream(certBytes));
         assertNotNull(cert);
+
+        // Change password
+        String anilpass = "testpass";
+        im.updatePassword(anil, anilpass);
+
+        // Let us validate
+        assertTrue(im.validatePassword(anil, anilpass));
+
+        assertFalse(im.validatePassword(anil, "BAD"));
 
         // Let us do UserQuery search
         UserQuery query = im.createUserQuery().setAttributeFilter("QuestionTotal", new String[] { "2" });

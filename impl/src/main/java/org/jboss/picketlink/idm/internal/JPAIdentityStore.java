@@ -21,6 +21,7 @@
  */
 package org.jboss.picketlink.idm.internal;
 
+import java.security.cert.X509Certificate;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -520,7 +521,6 @@ public class JPAIdentityStore implements IdentityStore {
         return new DefaultMembershipQuery(this);
     }
 
-
     public void setJpaTemplate(JPATemplate jpaTemplate) {
         this.jpaTemplate = jpaTemplate;
     }
@@ -606,4 +606,22 @@ public class JPAIdentityStore implements IdentityStore {
         });
     }
 
+    @Override
+    public boolean validatePassword(User user, String password) {
+        return false;
+    }
+
+    @Override
+    public void updatePassword(User user, String password) {
+    }
+
+    @Override
+    public boolean validateCertificate(User user, X509Certificate certificate) {
+        return false;
+    }
+
+    @Override
+    public boolean updateCertificate(User user, X509Certificate certificate) {
+        return false;
+    }
 }

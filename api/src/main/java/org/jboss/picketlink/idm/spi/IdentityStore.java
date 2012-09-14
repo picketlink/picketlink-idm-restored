@@ -21,6 +21,7 @@
  */
 package org.jboss.picketlink.idm.spi;
 
+import java.security.cert.X509Certificate;
 import java.util.List;
 import java.util.Map;
 
@@ -44,6 +45,15 @@ public interface IdentityStore {
 
     // TODO: control hooks, events
     // TODO: authentication, password strenght, salted password hashes
+
+    boolean validatePassword(User user, String password);
+
+    void updatePassword(User user, String password);
+
+    // Certificate Management
+    boolean validateCertificate(User user, X509Certificate certificate);
+
+    boolean updateCertificate(User user, X509Certificate certificate);
 
     // User
 
@@ -188,7 +198,9 @@ public interface IdentityStore {
     Map<String, String[]> getAttributes(Role role);
 
     /**
-     * <p>Creates a {@link MembershipQuery} instance.</p>
+     * <p>
+     * Creates a {@link MembershipQuery} instance.
+     * </p>
      *
      * @return
      */
