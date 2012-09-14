@@ -21,6 +21,7 @@
  */
 package org.jboss.picketlink.idm;
 
+import java.security.cert.X509Certificate;
 import java.util.Collection;
 import java.util.Date;
 
@@ -112,10 +113,14 @@ public interface IdentityManager {
     MembershipQuery createMembershipQuery();
 
     // Password Management
+    boolean validatePassword(User user, String password);
 
-    boolean validatePassword(String password);
+    void updatePassword(User user, String password);
 
-    void updatePassword(String password);
+    // Certificate Management
+    boolean validateCertificate(User user, X509Certificate certificate);
+
+    boolean updateCertificate(User user, X509Certificate certificate);
 
     // User / Role / Group enablement / expiry
 

@@ -53,7 +53,7 @@ import org.jboss.picketlink.idm.model.IdentityType;
 public abstract class AbstractDatabaseIdentityType<A extends AbstractDatabaseAttribute> implements IdentityType {
 
     @Id
-    @GeneratedValue (strategy=GenerationType.AUTO)
+    @GeneratedValue(strategy = GenerationType.AUTO)
     private long id;
 
     private String key;

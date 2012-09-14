@@ -21,6 +21,8 @@
  */
 package org.jboss.picketlink.idm.internal.config;
 
+import java.util.Properties;
+
 import org.jboss.picketlink.idm.spi.IdentityStoreConfiguration;
 
 /**
@@ -40,6 +42,8 @@ public class LDAPConfiguration extends IdentityStoreConfiguration {
     private String bindDN;
     private String bindCredential;
     private String standardAttributesFileName = "standardattributes.txt";
+    private boolean isActiveDirectory = false;
+    private Properties additionalProperties = new Properties();
 
     public String getStandardAttributesFileName() {
         return standardAttributesFileName;
@@ -129,5 +133,21 @@ public class LDAPConfiguration extends IdentityStoreConfiguration {
 
     public String getBindCredential() {
         return bindCredential;
+    }
+
+    public boolean isActiveDirectory() {
+        return isActiveDirectory;
+    }
+
+    public void setActiveDirectory(boolean isActiveDirectory) {
+        this.isActiveDirectory = isActiveDirectory;
+    }
+
+    public Properties getAdditionalProperties() {
+        return additionalProperties;
+    }
+
+    public void setAdditionalProperties(Properties additionalProperties) {
+        this.additionalProperties.putAll(additionalProperties);
     }
 }

@@ -21,7 +21,6 @@
  */
 package org.jboss.picketlink.idm.model;
 
-
 /**
  * Simple implementation of the {@link Membership} interface
  *

@@ -110,7 +110,9 @@ public class DefaultMembershipQuery extends AbstractQuery<DefaultMembershipQuery
         return this;
     }
 
-    /* (non-Javadoc)
+    /*
+     * (non-Javadoc)
+     *
      * @see org.jboss.picketlink.idm.query.MembershipQuery#executeQuery()
      */
     @Override

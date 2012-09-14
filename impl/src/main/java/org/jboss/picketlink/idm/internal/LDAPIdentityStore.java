@@ -26,6 +26,7 @@ import static org.jboss.picketlink.idm.internal.ldap.LDAPConstants.MEMBER;
 import static org.jboss.picketlink.idm.internal.ldap.LDAPConstants.OBJECT_CLASS;
 import static org.jboss.picketlink.idm.internal.ldap.LDAPConstants.UID;
 
+import java.security.cert.X509Certificate;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -42,6 +43,7 @@ import javax.naming.directory.BasicAttribute;
 import javax.naming.directory.BasicAttributes;
 import javax.naming.directory.DirContext;
 import javax.naming.directory.ModificationItem;
+import javax.naming.directory.SearchControls;
 import javax.naming.directory.SearchResult;
 import javax.naming.ldap.InitialLdapContext;
 
@@ -79,50 +81,42 @@ public class LDAPIdentityStore implements IdentityStore, LDAPChangeNotificationH
 
     protected DirContext ctx = null;
     protected String userDNSuffix, roleDNSuffix, groupDNSuffix;
+    protected boolean isActiveDirectory = false;
 
     protected List<String> managedAttributes = new ArrayList<String>();
+
+    protected LDAPConfiguration ldapConfiguration = null;
 
     public LDAPIdentityStore() {
     }
 
     public void setConfiguration(LDAPConfiguration configuration) {
+        this.ldapConfiguration = configuration;
         userDNSuffix = configuration.getUserDNSuffix();
         roleDNSuffix = configuration.getRoleDNSuffix();
         groupDNSuffix = configuration.getGroupDNSuffix();
+        isActiveDirectory = configuration.isActiveDirectory();
 
-        // Construct the dir ctx
-        Properties env = new Properties();
-        env.setProperty(Context.INITIAL_CONTEXT_FACTORY, configuration.getFactoryName());
-        env.setProperty(Context.SECURITY_AUTHENTICATION, configuration.getAuthType());
+        constructContext();
 
-        String protocol = configuration.getProtocol();
-        if (protocol != null) {
-            env.setProperty(Context.SECURITY_PROTOCOL, protocol);
-        }
-        String bindDN = configuration.getBindDN();
-        char[] bindCredential = null;
-
-        if (configuration.getBindCredential() != null) {
-            bindCredential = configuration.getBindCredential().toCharArray();
-        }
-
-        if (bindDN != null) {
-            env.setProperty(Context.SECURITY_PRINCIPAL, bindDN);
-            env.put(Context.SECURITY_CREDENTIALS, bindCredential);
-        }
-
-        String url = configuration.getLdapURL();
-        if (url == null) {
-            throw new RuntimeException("url");
-        }
-
-        env.setProperty(Context.PROVIDER_URL, url);
-
-        try {
-            ctx = new InitialLdapContext(env, null);
-        } catch (NamingException e1) {
-            throw new RuntimeException(e1);
-        }
+        /*
+         * // Construct the dir ctx Properties env = new Properties(); env.setProperty(Context.INITIAL_CONTEXT_FACTORY,
+         * configuration.getFactoryName()); env.setProperty(Context.SECURITY_AUTHENTICATION, configuration.getAuthType());
+         *
+         * String protocol = configuration.getProtocol(); if (protocol != null) { env.setProperty(Context.SECURITY_PROTOCOL,
+         * protocol); } String bindDN = configuration.getBindDN(); char[] bindCredential = null;
+         *
+         * if (configuration.getBindCredential() != null) { bindCredential = configuration.getBindCredential().toCharArray(); }
+         *
+         * if (bindDN != null) { env.setProperty(Context.SECURITY_PRINCIPAL, bindDN); env.put(Context.SECURITY_CREDENTIALS,
+         * bindCredential); }
+         *
+         * String url = configuration.getLdapURL(); if (url == null) { throw new RuntimeException("url"); }
+         *
+         * env.setProperty(Context.PROVIDER_URL, url);
+         *
+         * try { ctx = new InitialLdapContext(env, null); } catch (NamingException e1) { throw new RuntimeException(e1); }
+         */
     }
 
     @Override
@@ -760,5 +754,145 @@ public class LDAPIdentityStore implements IdentityStore, LDAPChangeNotificationH
     @Override
     public MembershipQuery createMembershipQuery() {
         throw new RuntimeException();
+    }
+
+    public boolean validatePassword(User user, String password) {
+        boolean valid = false;
+        // We have to bind
+        try {
+            LDAPUser ldapUser = (LDAPUser) user;
+            String filter = "(&(objectClass=inetOrgPerson)(uid={0}))";
+            SearchControls ctls = new SearchControls();
+            ctls.setSearchScope(SearchControls.SUBTREE_SCOPE);
+            ctls.setReturningAttributes(new String[0]);
+            ctls.setReturningObjFlag(true);
+            NamingEnumeration<SearchResult> enm = ctx.search(userDNSuffix, filter, new String[] { ldapUser.getId() }, ctls);
+
+            String dn = null;
+            if (enm.hasMore()) {
+                SearchResult result = enm.next();
+                dn = result.getNameInNamespace();
+
+                System.out.println("dn: " + dn);
+            }
+
+            if (dn == null || enm.hasMore()) {
+                // uid not found or not unique
+                throw new NamingException("Authentication failed");
+            }
+
+            // Step 3: Bind with found DN and given password
+            ctx.addToEnvironment(Context.SECURITY_PRINCIPAL, dn);
+            ctx.addToEnvironment(Context.SECURITY_CREDENTIALS, password);
+            // Perform a lookup in order to force a bind operation with JNDI
+            ctx.lookup(dn);
+            valid = true;
+        } catch (NamingException e) {
+            // Ignore
+        }
+
+        constructContext();
+        return valid;
+    }
+
+    @Override
+    public void updatePassword(User user, String password) {
+        if (isActiveDirectory) {
+            updateADPassword((LDAPUser) user, password);
+        } else {
+            LDAPUser ldapuser = (LDAPUser) user;
+
+            ModificationItem[] mods = new ModificationItem[1];
+
+            Attribute mod0 = new BasicAttribute("userpassword", password);
+
+            mods[0] = new ModificationItem(DirContext.REPLACE_ATTRIBUTE, mod0);
+
+            try {
+                ctx.modifyAttributes(ldapuser.getDN(), mods);
+            } catch (NamingException e) {
+                throw new RuntimeException(e);
+            }
+        }
+    }
+
+    @Override
+    public boolean validateCertificate(User user, X509Certificate certificate) {
+        return false;
+    }
+
+    @Override
+    public boolean updateCertificate(User user, X509Certificate certificate) {
+        return false;
+    }
+
+    private void constructContext() {
+        if (ctx != null) {
+            try {
+                ctx.close();
+            } catch (NamingException ignore) {
+
+            }
+        }
+        // Construct the dir ctx
+        Properties env = new Properties();
+        env.setProperty(Context.INITIAL_CONTEXT_FACTORY, ldapConfiguration.getFactoryName());
+        env.setProperty(Context.SECURITY_AUTHENTICATION, ldapConfiguration.getAuthType());
+
+        String protocol = ldapConfiguration.getProtocol();
+        if (protocol != null) {
+            env.setProperty(Context.SECURITY_PROTOCOL, protocol);
+        }
+        String bindDN = ldapConfiguration.getBindDN();
+        char[] bindCredential = null;
+
+        if (ldapConfiguration.getBindCredential() != null) {
+            bindCredential = ldapConfiguration.getBindCredential().toCharArray();
+        }
+
+        if (bindDN != null) {
+            env.setProperty(Context.SECURITY_PRINCIPAL, bindDN);
+            env.put(Context.SECURITY_CREDENTIALS, bindCredential);
+        }
+
+        String url = ldapConfiguration.getLdapURL();
+        if (url == null) {
+            throw new RuntimeException("url");
+        }
+
+        env.setProperty(Context.PROVIDER_URL, url);
+
+        // Just dump the additional properties
+        Properties additionalProperties = ldapConfiguration.getAdditionalProperties();
+        Set<Object> keys = additionalProperties.keySet();
+        for (Object key : keys) {
+            env.setProperty((String) key, additionalProperties.getProperty((String) key));
+        }
+
+        try {
+            ctx = new InitialLdapContext(env, null);
+        } catch (NamingException e1) {
+            throw new RuntimeException(e1);
+        }
+    }
+
+    // Remember the updation has to happen over SSL. That is handled by the JNDI Ctx Parameters
+    private void updateADPassword(LDAPUser user, String password) {
+        try {
+            // set password is a ldap modfy operation
+            ModificationItem[] mods = new ModificationItem[1];
+
+            // Replace the "unicdodePwd" attribute with a new value
+            // Password must be both Unicode and a quoted string
+            String newQuotedPassword = "\"" + password + "\"";
+            byte[] newUnicodePassword = newQuotedPassword.getBytes("UTF-16LE");
+
+            mods[0] = new ModificationItem(DirContext.REPLACE_ATTRIBUTE, new BasicAttribute("unicodePwd", newUnicodePassword));
+
+            // Perform the update
+            ctx.modifyAttributes(user.getDN(), mods);
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
     }
 }

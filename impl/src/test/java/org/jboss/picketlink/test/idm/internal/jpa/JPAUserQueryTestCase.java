@@ -50,7 +50,9 @@ public class JPAUserQueryTestCase extends AbstractJPAIdentityStoreTestCase {
     private static final String USER_USERNAME = "asaldhana";
     private User user;
 
-    /* (non-Javadoc)
+    /*
+     * (non-Javadoc)
+     *
      * @see org.jboss.picketlink.test.idm.internal.jpa.AbstractJPAIdentityStoreTestCase#onSetupTest()
      */
     @Override
@@ -156,7 +158,6 @@ public class JPAUserQueryTestCase extends AbstractJPAIdentityStoreTestCase {
         assertQueryResult(query);
     }
 
-
     /**
      * <p>
      * Tests a simple query using the user's attributes.
@@ -169,14 +170,16 @@ public class JPAUserQueryTestCase extends AbstractJPAIdentityStoreTestCase {
         UserQuery query = new DefaultUserQuery();
 
         query.setName(this.user.getKey());
-        query.setAttributeFilter("attribute1", new String[] {"attributeValue1", "attributeValue12", "attributeValue123"});
-        query.setAttributeFilter("attribute2", new String[] {"attributeValue2", "attributeValue21", "attributeValue23"});
+        query.setAttributeFilter("attribute1", new String[] { "attributeValue1", "attributeValue12", "attributeValue123" });
+        query.setAttributeFilter("attribute2", new String[] { "attributeValue2", "attributeValue21", "attributeValue23" });
 
         assertQueryResult(query);
     }
 
     /**
-     * <p>Asserts if the result returned by the specified {@link UserQuery} match the expected values.</p>
+     * <p>
+     * Asserts if the result returned by the specified {@link UserQuery} match the expected values.
+     * </p>
      *
      * @param query
      */
@@ -191,7 +194,9 @@ public class JPAUserQueryTestCase extends AbstractJPAIdentityStoreTestCase {
     }
 
     /**
-     * <p>Create and persist a {@link User} instance for testing.</p>
+     * <p>
+     * Create and persist a {@link User} instance for testing.
+     * </p>
      */
     private void loadUsers() {
         IdentityStore identityStore = createIdentityStore();

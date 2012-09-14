@@ -114,8 +114,6 @@ public class JPAMembershipQueryTestCase extends AbstractJPAIdentityStoreTestCase
         assertQueryResult(query);
     }
 
-
-
     /**
      * <p>
      * Create and persist a {@link Group} instance for testing.

@@ -21,6 +21,7 @@
  */
 package org.jboss.picketlink.idm.internal;
 
+import java.security.cert.X509Certificate;
 import java.util.Collection;
 import java.util.Date;
 
@@ -203,9 +204,9 @@ public class DefaultIdentityManager implements IdentityManager {
         throw new RuntimeException();
     }
 
-
-
-    /* (non-Javadoc)
+    /*
+     * (non-Javadoc)
+     *
      * @see org.jboss.picketlink.idm.IdentityManager#createMembershipQuery()
      */
     @Override
@@ -214,13 +215,23 @@ public class DefaultIdentityManager implements IdentityManager {
     }
 
     @Override
-    public boolean validatePassword(String password) {
-        throw new RuntimeException();
+    public boolean validatePassword(User user, String password) {
+        return store.validatePassword(user, password);
     }
 
     @Override
-    public void updatePassword(String password) {
-        throw new RuntimeException();
+    public void updatePassword(User user, String password) {
+        store.updatePassword(user, password);
+    }
+
+    @Override
+    public boolean validateCertificate(User user, X509Certificate certificate) {
+        return store.validateCertificate(user, certificate);
+    }
+
+    @Override
+    public boolean updateCertificate(User user, X509Certificate certificate) {
+        return store.updateCertificate(user, certificate);
     }
 
     public void setEnabled(IdentityType identityType, boolean enabled) {
