@@ -67,6 +67,7 @@ import org.jboss.picketlink.idm.spi.IdentityStore;
  */
 public class JPAIdentityStore implements IdentityStore {
 
+    private static final String PASSWORD_ATTRIBUTE_NAME = "password";
     private JPATemplate jpaTemplate;
 
     /*
@@ -606,13 +607,22 @@ public class JPAIdentityStore implements IdentityStore {
         });
     }
 
+    /* (non-Javadoc)
+     * @see org.jboss.picketlink.idm.spi.IdentityStore#validatePassword(org.jboss.picketlink.idm.model.User, java.lang.String)
+     */
     @Override
     public boolean validatePassword(User user, String password) {
-        return false;
+        String userPasswd = user.getAttribute(PASSWORD_ATTRIBUTE_NAME);
+        
+        return userPasswd != null && password != null && password.equals(userPasswd);
     }
 
+    /* (non-Javadoc)
+     * @see org.jboss.picketlink.idm.spi.IdentityStore#updatePassword(org.jboss.picketlink.idm.model.User, java.lang.String)
+     */
     @Override
     public void updatePassword(User user, String password) {
+        user.setAttribute(PASSWORD_ATTRIBUTE_NAME, password);
     }
 
     @Override
