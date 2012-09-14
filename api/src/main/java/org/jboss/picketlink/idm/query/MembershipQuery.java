@@ -41,6 +41,8 @@ public interface MembershipQuery {
 
     MembershipQuery immutable();
 
+    List<Membership> executeQuery();
+    
     List<Membership> executeQuery(MembershipQuery query);
 
     // Conditions

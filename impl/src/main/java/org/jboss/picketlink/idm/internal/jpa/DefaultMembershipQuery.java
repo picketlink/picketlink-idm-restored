@@ -32,6 +32,7 @@ import org.jboss.picketlink.idm.model.SimpleRole;
 import org.jboss.picketlink.idm.model.SimpleUser;
 import org.jboss.picketlink.idm.model.User;
 import org.jboss.picketlink.idm.query.MembershipQuery;
+import org.jboss.picketlink.idm.spi.IdentityStore;
 
 /**
  * @author <a href="mailto:psilva@redhat.com">Pedro Silva</a>
@@ -42,6 +43,11 @@ public class DefaultMembershipQuery extends AbstractQuery<DefaultMembershipQuery
     private Group group;
     private Role role;
     private User user;
+    private IdentityStore store;
+
+    public DefaultMembershipQuery(IdentityStore identityStore) {
+        this.store = identityStore;
+    }
 
     @Override
     public Group getGroup() {
@@ -83,8 +89,7 @@ public class DefaultMembershipQuery extends AbstractQuery<DefaultMembershipQuery
 
     @Override
     public List<Membership> executeQuery(MembershipQuery query) {
-        // TODO Auto-generated method stub
-        return null;
+        return this.store.executeQuery(query, null);
     }
 
     @Override

@@ -42,6 +42,7 @@ import org.jboss.picketlink.idm.internal.jpa.DatabaseMembership;
 import org.jboss.picketlink.idm.internal.jpa.DatabaseRole;
 import org.jboss.picketlink.idm.internal.jpa.DatabaseUser;
 import org.jboss.picketlink.idm.internal.jpa.DatabaseUserAttribute;
+import org.jboss.picketlink.idm.internal.jpa.DefaultMembershipQuery;
 import org.jboss.picketlink.idm.internal.jpa.JPACallback;
 import org.jboss.picketlink.idm.internal.jpa.JPATemplate;
 import org.jboss.picketlink.idm.internal.jpa.NamedQueries;
@@ -390,7 +391,6 @@ public class JPAIdentityStore implements IdentityStore {
                     predicates.add(criteriaBuilder.equal(joinRole.get("id"), query.getGroup().getId()));
                 }
 
-                // predicates for the attributes
                 if (query.getAttributeFilters() != null) {
                     Set<Entry<String, String[]>> entrySet = query.getAttributeFilters().entrySet();
 
@@ -515,6 +515,12 @@ public class JPAIdentityStore implements IdentityStore {
         return role.getAttributes();
     }
 
+    @Override
+    public MembershipQuery createMembershipQuery() {
+        return new DefaultMembershipQuery(this);
+    }
+
+
     public void setJpaTemplate(JPATemplate jpaTemplate) {
         this.jpaTemplate = jpaTemplate;
     }
@@ -599,4 +605,5 @@ public class JPAIdentityStore implements IdentityStore {
             }
         });
     }
+
 }

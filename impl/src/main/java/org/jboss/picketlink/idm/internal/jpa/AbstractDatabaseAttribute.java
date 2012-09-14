@@ -45,7 +45,7 @@ public abstract class AbstractDatabaseAttribute<OWNER extends IdentityType> {
 
     @Id
     @GeneratedValue
-    private String id;
+    private long id;
 
     private String name;
     private String value;
@@ -62,14 +62,14 @@ public abstract class AbstractDatabaseAttribute<OWNER extends IdentityType> {
      * @return the id
      */
     public String getId() {
-        return id;
+        return String.valueOf(id);
     }
 
     /**
      * @param id the id to set
      */
     public void setId(String id) {
-        this.id = id;
+        this.id = Long.valueOf(id);
     }
 
     /**
