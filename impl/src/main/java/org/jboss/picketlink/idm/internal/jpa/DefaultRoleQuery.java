@@ -29,6 +29,7 @@ import org.jboss.picketlink.idm.model.IdentityType;
 import org.jboss.picketlink.idm.model.Role;
 import org.jboss.picketlink.idm.model.SimpleGroup;
 import org.jboss.picketlink.idm.query.RoleQuery;
+import org.jboss.picketlink.idm.spi.IdentityStore;
 
 /**
  * @author <a href="mailto:psilva@redhat.com">Pedro Silva</a>
@@ -36,12 +37,16 @@ import org.jboss.picketlink.idm.query.RoleQuery;
  */
 public class DefaultRoleQuery extends AbstractQuery<DefaultRoleQuery> implements RoleQuery {
 
+    private IdentityStore store;
     private Group group;
+    
+    public DefaultRoleQuery(IdentityStore jpaIdentityStore) {
+        this.store = jpaIdentityStore;
+    }
 
     @Override
     public List<Role> executeQuery(RoleQuery query) {
-        // TODO Auto-generated method stub
-        return null;
+        return this.store.executeQuery(query, null);
     }
 
     @Override

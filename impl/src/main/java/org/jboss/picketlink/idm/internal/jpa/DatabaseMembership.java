@@ -26,7 +26,7 @@ public class DatabaseMembership implements Membership {
 
     @Id
     @GeneratedValue
-    private String id;
+    private long id;
 
     @ManyToOne
     private DatabaseUser user;
@@ -51,14 +51,14 @@ public class DatabaseMembership implements Membership {
      * @return
      */
     public String getId() {
-        return this.id;
+        return String.valueOf(this.id);
     }
 
     /**
      * @param id
      */
     public void setId(String id) {
-        this.id = id;
+        this.id = Long.valueOf(id);
     }
 
     /**

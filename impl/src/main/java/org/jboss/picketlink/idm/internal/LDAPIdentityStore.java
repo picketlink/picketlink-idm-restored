@@ -67,7 +67,7 @@ import org.jboss.picketlink.idm.spi.IdentityStore;
 
 /**
  * An IdentityStore implementation backed by an LDAP directory
- *
+ * 
  * @author Shane Bryzak
  * @author Anil Saldhana
  */
@@ -626,7 +626,7 @@ public class LDAPIdentityStore implements IdentityStore, LDAPChangeNotificationH
 
     /**
      * Ask the ldap server for the schema for the attribute
-     *
+     * 
      * @param attributeName
      * @return
      */
@@ -644,5 +644,10 @@ public class LDAPIdentityStore implements IdentityStore, LDAPChangeNotificationH
         }
 
         return false;
+    }
+
+    @Override
+    public MembershipQuery createMembershipQuery() {
+        throw new RuntimeException();
     }
 }

@@ -25,7 +25,6 @@ import java.util.Collection;
 import java.util.Date;
 
 import org.jboss.picketlink.idm.IdentityManager;
-import org.jboss.picketlink.idm.spi.IdentityStore;
 import org.jboss.picketlink.idm.model.Group;
 import org.jboss.picketlink.idm.model.IdentityType;
 import org.jboss.picketlink.idm.model.Role;
@@ -34,6 +33,7 @@ import org.jboss.picketlink.idm.query.GroupQuery;
 import org.jboss.picketlink.idm.query.MembershipQuery;
 import org.jboss.picketlink.idm.query.RoleQuery;
 import org.jboss.picketlink.idm.query.UserQuery;
+import org.jboss.picketlink.idm.spi.IdentityStore;
 
 /**
  * Default implementation of the IdentityManager interface
@@ -183,7 +183,7 @@ public class DefaultIdentityManager implements IdentityManager {
 
     @Override
     public void grantRole(Role role, IdentityType identityType, Group group) {
-        throw new RuntimeException();
+        this.store.createMembership(role, (User) identityType, group);
     }
 
     @Override
@@ -201,14 +201,14 @@ public class DefaultIdentityManager implements IdentityManager {
         throw new RuntimeException();
     }
 
-    @Override
-    public RoleQuery createRoleQuery() {
-        throw new RuntimeException();
-    }
 
+
+    /* (non-Javadoc)
+     * @see org.jboss.picketlink.idm.IdentityManager#createMembershipQuery()
+     */
     @Override
     public MembershipQuery createMembershipQuery() {
-        throw new RuntimeException();
+        return this.store.createMembershipQuery();
     }
 
     @Override
@@ -233,5 +233,10 @@ public class DefaultIdentityManager implements IdentityManager {
         if (store == null) {
             throw new RuntimeException("Identity Store has not been set");
         }
+    }
+
+    @Override
+    public RoleQuery createRoleQuery() {
+        throw new RuntimeException();
     }
 }

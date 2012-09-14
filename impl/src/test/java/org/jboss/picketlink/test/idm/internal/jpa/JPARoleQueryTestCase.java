@@ -73,11 +73,15 @@ public class JPARoleQueryTestCase extends AbstractJPAIdentityStoreTestCase {
      */
     @Test
     public void testfindByName() throws Exception {
-        RoleQuery query = new DefaultRoleQuery();
+        RoleQuery query = createRoleQuery();
 
         query.setName(this.role.getName());
 
         assertQueryResult(query);
+    }
+
+    private DefaultRoleQuery createRoleQuery() {
+        return new DefaultRoleQuery(createIdentityStore());
     }
 
     /**
@@ -89,7 +93,7 @@ public class JPARoleQueryTestCase extends AbstractJPAIdentityStoreTestCase {
      */
     @Test
     public void testfindByGroup() throws Exception {
-        RoleQuery query = new DefaultRoleQuery();
+        RoleQuery query = createRoleQuery();
 
         query.setName(this.role.getName());
         query.setGroup(this.group);
@@ -106,7 +110,7 @@ public class JPARoleQueryTestCase extends AbstractJPAIdentityStoreTestCase {
      */
     @Test
     public void testfindByAttributes() throws Exception {
-        RoleQuery query = new DefaultRoleQuery();
+        RoleQuery query = createRoleQuery();
 
         query.setName(this.role.getName());
         query.setAttributeFilter("attribute1", new String[] { "attributeValue1", "attributeValue12", "attributeValue123" });

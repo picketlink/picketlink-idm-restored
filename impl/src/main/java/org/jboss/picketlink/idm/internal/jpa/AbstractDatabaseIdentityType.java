@@ -30,6 +30,7 @@ import java.util.List;
 import java.util.Map;
 
 import javax.persistence.GeneratedValue;
+import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.MappedSuperclass;
 import javax.persistence.Transient;
@@ -50,8 +51,8 @@ import org.jboss.picketlink.idm.model.IdentityType;
 public abstract class AbstractDatabaseIdentityType<A extends AbstractDatabaseAttribute> implements IdentityType {
 
     @Id
-    @GeneratedValue
-    private String id;
+    @GeneratedValue (strategy=GenerationType.AUTO)
+    private long id;
 
     private String key;
     private boolean enabled = true;
@@ -72,14 +73,14 @@ public abstract class AbstractDatabaseIdentityType<A extends AbstractDatabaseAtt
      * @return the id
      */
     public String getId() {
-        return id;
+        return String.valueOf(id);
     }
 
     /**
      * @param id the id to set
      */
     public void setId(String id) {
-        this.id = id;
+        this.id = Long.valueOf(id);
     }
 
     /* (non-Javadoc)
