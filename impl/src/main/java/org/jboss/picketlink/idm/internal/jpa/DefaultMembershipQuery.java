@@ -110,4 +110,12 @@ public class DefaultMembershipQuery extends AbstractQuery<DefaultMembershipQuery
         return this;
     }
 
+    /* (non-Javadoc)
+     * @see org.jboss.picketlink.idm.query.MembershipQuery#executeQuery()
+     */
+    @Override
+    public List<Membership> executeQuery() {
+        return this.store.executeQuery(this, null);
+    }
+
 }
