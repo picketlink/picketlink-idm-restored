@@ -45,6 +45,7 @@ import javax.naming.directory.SearchControls;
 import javax.naming.directory.SearchResult;
 
 import org.jboss.picketlink.idm.internal.ldap.LDAPObjectChangedNotification.NType;
+import org.jboss.picketlink.idm.internal.util.Base64;
 import org.jboss.picketlink.idm.model.IdentityType;
 
 /**
@@ -401,7 +402,14 @@ public class DirContextAdaptor implements DirContext, IdentityType {
     public String getAttribute(String name) {
         try {
             Attribute theAttribute = attributes.get(name);
-            return (String) theAttribute.get();
+            Object obj = theAttribute.get();
+            String val = null;
+            if (obj instanceof byte[]) {
+                val = new String(Base64.encodeBytes((byte[]) obj));
+            } else {
+                val = (String) obj;
+            }
+            return val;
         } catch (NamingException e) {
             throw new RuntimeException(e);
         }
@@ -428,11 +436,17 @@ public class DirContextAdaptor implements DirContext, IdentityType {
             NamingEnumeration<? extends Attribute> theAttributes = attributes.getAll();
             while (theAttributes.hasMore()) {
                 Attribute anAttribute = theAttributes.next();
-                NamingEnumeration<String> ne = (NamingEnumeration<String>) anAttribute.getAll();
+                NamingEnumeration<Object> ne = (NamingEnumeration<Object>) anAttribute.getAll();
 
                 List<String> theList = new ArrayList<String>();
                 while (ne.hasMoreElements()) {
-                    String val = ne.nextElement();
+                    String val = null;
+                    Object obj = ne.next();
+                    if (obj instanceof byte[]) {
+                        val = new String(Base64.encodeBytes((byte[]) obj));
+                    } else {
+                        val = (String) obj;
+                    }
                     theList.add(val);
                 }
                 String[] valuesArr = new String[theList.size()];

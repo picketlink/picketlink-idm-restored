@@ -56,6 +56,7 @@ import org.jboss.picketlink.idm.internal.ldap.LDAPRole;
 import org.jboss.picketlink.idm.internal.ldap.LDAPUser;
 import org.jboss.picketlink.idm.internal.ldap.LDAPUserCustomAttributes;
 import org.jboss.picketlink.idm.internal.ldap.ManagedAttributeLookup;
+import org.jboss.picketlink.idm.internal.util.Base64;
 import org.jboss.picketlink.idm.internal.util.IDMUtil;
 import org.jboss.picketlink.idm.model.DefaultMembership;
 import org.jboss.picketlink.idm.model.Group;
@@ -98,25 +99,6 @@ public class LDAPIdentityStore implements IdentityStore, LDAPChangeNotificationH
         isActiveDirectory = configuration.isActiveDirectory();
 
         constructContext();
-
-        /*
-         * // Construct the dir ctx Properties env = new Properties(); env.setProperty(Context.INITIAL_CONTEXT_FACTORY,
-         * configuration.getFactoryName()); env.setProperty(Context.SECURITY_AUTHENTICATION, configuration.getAuthType());
-         *
-         * String protocol = configuration.getProtocol(); if (protocol != null) { env.setProperty(Context.SECURITY_PROTOCOL,
-         * protocol); } String bindDN = configuration.getBindDN(); char[] bindCredential = null;
-         *
-         * if (configuration.getBindCredential() != null) { bindCredential = configuration.getBindCredential().toCharArray(); }
-         *
-         * if (bindDN != null) { env.setProperty(Context.SECURITY_PRINCIPAL, bindDN); env.put(Context.SECURITY_CREDENTIALS,
-         * bindCredential); }
-         *
-         * String url = configuration.getLdapURL(); if (url == null) { throw new RuntimeException("url"); }
-         *
-         * env.setProperty(Context.PROVIDER_URL, url);
-         *
-         * try { ctx = new InitialLdapContext(env, null); } catch (NamingException e1) { throw new RuntimeException(e1); }
-         */
     }
 
     @Override
@@ -823,7 +805,21 @@ public class LDAPIdentityStore implements IdentityStore, LDAPChangeNotificationH
 
     @Override
     public boolean updateCertificate(User user, X509Certificate certificate) {
-        return false;
+        try {
+            LDAPUser ldapUser = (LDAPUser) user;
+            ldapUser.setAttribute("usercertificate", new String(Base64.encodeBytes(certificate.getEncoded())));
+            ModificationItem[] mods = new ModificationItem[1];
+
+            byte[] certbytes = certificate.getEncoded();
+
+            mods[0] = new ModificationItem(DirContext.REPLACE_ATTRIBUTE, new BasicAttribute("usercertificate", certbytes));
+
+            // Perform the update
+            ctx.modifyAttributes(ldapUser.getDN(), mods);
+            return true;
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
     }
 
     private void constructContext() {

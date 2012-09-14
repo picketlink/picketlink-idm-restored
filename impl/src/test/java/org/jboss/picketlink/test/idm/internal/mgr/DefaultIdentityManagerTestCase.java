@@ -97,10 +97,20 @@ public class DefaultIdentityManagerTestCase extends AbstractLDAPTest {
         String encodedCert = Base64.encodeBytes(cert.getEncoded());
         anil.setAttribute("x509", encodedCert);
 
+        // Try saving the cert as standard ldap cert
+        im.updateCertificate(anil, cert);
+
         // let us retrieve the attributes from ldap store and see if they are the same
         anil = im.getUser("Anil Saldhana");
         Map<String, String[]> attributes = anil.getAttributes();
         assertNotNull(attributes);
+
+        // Can we still get the cert as an attribute?
+        String strCert = anil.getAttribute("usercertificate");
+        byte[] decodedCert = Base64.decode(strCert);
+        ByteArrayInputStream byteStream = new ByteArrayInputStream(decodedCert);
+        X509Certificate newCert = (X509Certificate) cf.generateCertificate(byteStream);
+        assertNotNull(newCert);
 
         assertEquals("2", attributes.get("QuestionTotal")[0]);
         assertEquals("What is favorite toy?", attributes.get("Question1")[0]);

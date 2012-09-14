@@ -607,17 +607,21 @@ public class JPAIdentityStore implements IdentityStore {
         });
     }
 
-    /* (non-Javadoc)
+    /*
+     * (non-Javadoc)
+     *
      * @see org.jboss.picketlink.idm.spi.IdentityStore#validatePassword(org.jboss.picketlink.idm.model.User, java.lang.String)
      */
     @Override
     public boolean validatePassword(User user, String password) {
         String userPasswd = user.getAttribute(PASSWORD_ATTRIBUTE_NAME);
-        
+
         return userPasswd != null && password != null && password.equals(userPasswd);
     }
 
-    /* (non-Javadoc)
+    /*
+     * (non-Javadoc)
+     *
      * @see org.jboss.picketlink.idm.spi.IdentityStore#updatePassword(org.jboss.picketlink.idm.model.User, java.lang.String)
      */
     @Override
