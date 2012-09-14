@@ -26,7 +26,7 @@ import static org.junit.Assert.assertFalse;
 
 import java.util.List;
 
-import org.jboss.picketlink.idm.internal.jpa.DefaultUserQuery;
+import org.jboss.picketlink.idm.internal.DefaultUserQuery;
 import org.jboss.picketlink.idm.model.Group;
 import org.jboss.picketlink.idm.model.Role;
 import org.jboss.picketlink.idm.model.User;

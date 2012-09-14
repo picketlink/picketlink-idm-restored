@@ -613,7 +613,7 @@ public class JPAIdentityStore implements IdentityStore {
     @Override
     public boolean validatePassword(User user, String password) {
         String userPasswd = user.getAttribute(PASSWORD_ATTRIBUTE_NAME);
-        
+
         return userPasswd != null && password != null && password.equals(userPasswd);
     }
 
