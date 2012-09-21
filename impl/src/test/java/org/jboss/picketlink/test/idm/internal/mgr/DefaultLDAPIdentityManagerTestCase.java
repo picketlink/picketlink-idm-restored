@@ -47,12 +47,12 @@ import org.junit.Test;
 import org.picketbox.test.ldap.AbstractLDAPTest;
 
 /**
- * Unit test the {@link DefaultIdentityManager}
+ * Unit test the {@link DefaultIdentityManager} using the {@link LDAPIdentityStore}.
  *
  * @author anil saldhana
  * @since Sep 6, 2012
  */
-public class DefaultIdentityManagerTestCase extends AbstractLDAPTest {
+public class DefaultLDAPIdentityManagerTestCase extends AbstractLDAPTest {
 
     @Before
     public void setup() throws Exception {

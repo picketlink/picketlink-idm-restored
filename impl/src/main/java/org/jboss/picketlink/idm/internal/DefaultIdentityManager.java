@@ -23,13 +23,16 @@ package org.jboss.picketlink.idm.internal;
 
 import java.security.cert.X509Certificate;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.Date;
 
 import org.jboss.picketlink.idm.IdentityManager;
+import org.jboss.picketlink.idm.internal.jpa.DefaultRoleQuery;
 import org.jboss.picketlink.idm.model.Group;
 import org.jboss.picketlink.idm.model.IdentityType;
 import org.jboss.picketlink.idm.model.Role;
 import org.jboss.picketlink.idm.model.User;
+import org.jboss.picketlink.idm.password.PasswordEncoder;
 import org.jboss.picketlink.idm.query.GroupQuery;
 import org.jboss.picketlink.idm.query.MembershipQuery;
 import org.jboss.picketlink.idm.query.RoleQuery;
@@ -44,6 +47,7 @@ import org.jboss.picketlink.idm.spi.IdentityStore;
  */
 public class DefaultIdentityManager implements IdentityManager {
     private IdentityStore store = null;
+    private PasswordEncoder passwordEncoder;
 
     public DefaultIdentityManager() {
     }
@@ -172,9 +176,20 @@ public class DefaultIdentityManager implements IdentityManager {
         throw new RuntimeException();
     }
 
+    @SuppressWarnings("unchecked")
     @Override
     public Collection<Role> getRoles(IdentityType identityType, Group group) {
-        throw new RuntimeException();
+        RoleQuery query = createRoleQuery();
+
+        // TODO: this should not happen because store impls must provide a valid instance. For now this is ignored and a empty list is returned.
+        if (query == null) {
+            return Collections.EMPTY_LIST;
+        }
+
+        query.setGroup(group);
+        query.setOwner(identityType);
+
+        return query.executeQuery();
     }
 
     @Override
@@ -216,12 +231,25 @@ public class DefaultIdentityManager implements IdentityManager {
 
     @Override
     public boolean validatePassword(User user, String password) {
+        if  (this.passwordEncoder != null) {
+            password = this.passwordEncoder.encodePassword(user, password);
+        }
+        
         return store.validatePassword(user, password);
     }
 
     @Override
     public void updatePassword(User user, String password) {
-        store.updatePassword(user, password);
+        if (this.passwordEncoder != null) {
+            password = this.passwordEncoder.encodePassword(user, password);
+        }
+        
+        this.store.updatePassword(user, password);
+    }
+
+    @Override
+    public void setPasswordEncoder(PasswordEncoder encoder) {
+        this.passwordEncoder = encoder;
     }
 
     @Override
@@ -250,6 +278,6 @@ public class DefaultIdentityManager implements IdentityManager {
 
     @Override
     public RoleQuery createRoleQuery() {
-        throw new RuntimeException();
+        return new DefaultRoleQuery(this.store);
     }
 }

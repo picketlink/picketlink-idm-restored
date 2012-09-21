@@ -163,9 +163,12 @@ public class JPAIdentityStore implements IdentityStore {
     @Override
     public Membership createMembership(Role role, User user, Group group) {
         DatabaseMembership newMembership = new DatabaseMembership(role, user, group);
-
+        DatabaseUser dbUser = (DatabaseUser) user;
+        
+        dbUser.getMemberships().add(newMembership);
+        
         persist(newMembership);
-
+        
         return newMembership;
     }
 
@@ -383,14 +386,20 @@ public class JPAIdentityStore implements IdentityStore {
 
                 Join<DatabaseRole, DatabaseMembership> join = null;
 
-                if (query.getGroup() != null) {
+                if (query.getGroup() != null || query.getOwner() != null) {
                     join = role.join("memberships");
                 }
 
                 // predicates for the group
                 if (query.getGroup() != null) {
-                    Join<DatabaseMembership, DatabaseGroup> joinRole = join.join("group");
-                    predicates.add(criteriaBuilder.equal(joinRole.get("id"), query.getGroup().getId()));
+                    Join<DatabaseMembership, DatabaseGroup> joinGroup = join.join("group");
+                    predicates.add(criteriaBuilder.equal(joinGroup.get("id"), query.getGroup().getId()));
+                }
+
+                // predicates for the owner
+                if (query.getOwner() != null) {
+                    Join<DatabaseMembership, DatabaseUser> joinUser = join.join("user");
+                    predicates.add(criteriaBuilder.equal(joinUser.get("key"), query.getOwner().getKey()));
                 }
 
                 if (query.getAttributeFilters() != null) {

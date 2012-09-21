@@ -29,6 +29,7 @@ import org.jboss.picketlink.idm.model.Group;
 import org.jboss.picketlink.idm.model.IdentityType;
 import org.jboss.picketlink.idm.model.Role;
 import org.jboss.picketlink.idm.model.User;
+import org.jboss.picketlink.idm.password.PasswordEncoder;
 import org.jboss.picketlink.idm.query.GroupQuery;
 import org.jboss.picketlink.idm.query.MembershipQuery;
 import org.jboss.picketlink.idm.query.RoleQuery;
@@ -116,6 +117,8 @@ public interface IdentityManager {
     boolean validatePassword(User user, String password);
 
     void updatePassword(User user, String password);
+
+    void setPasswordEncoder(PasswordEncoder encoder);
 
     // Certificate Management
     boolean validateCertificate(User user, X509Certificate certificate);
