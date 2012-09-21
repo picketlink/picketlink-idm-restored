@@ -20,18 +20,19 @@
  * 02110-1301 USA, or see the FSF site: http://www.fsf.org.
  */
 
-package org.jboss.picketlink.idm.internal;
+package org.jboss.picketlink.idm.internal.password;
 
 import java.io.UnsupportedEncodingException;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.security.SecureRandom;
 
+import org.jboss.picketlink.idm.internal.util.Base64;
 import org.jboss.picketlink.idm.model.User;
 import org.jboss.picketlink.idm.password.PasswordEncoder;
 
 /**
- * <p>{@link PasswordEncoder} that uses SHA to created a salted hash the password.</p>
+ * <p>{@link PasswordEncoder} that uses SHA to created a salted hash the password. Passwords are returned with a Base64 encoding.</p>
  * 
  * @author <a href="mailto:psilva@redhat.com">Pedro Silva</a>
  *
@@ -54,6 +55,7 @@ public class SHASaltedPasswordEncoder implements PasswordEncoder {
         
         String salt = user.getAttribute(PASSWORD_SALT_USER_ATTRIBUTE);
         
+        // user does not have a salt. let's generate a fresh one.
         if (salt == null) {
             SecureRandom psuedoRng = null;
             String algorithm = "SHA1PRNG";
@@ -76,10 +78,10 @@ public class SHASaltedPasswordEncoder implements PasswordEncoder {
         try {
             encodedPassword = messageDigest.digest(saltedPassword.getBytes("UTF-8"));
         } catch (UnsupportedEncodingException e) {
-            e.printStackTrace();
+            throw new RuntimeException("Error encoding password", e);
         }
         
-        return new String(encodedPassword);
+        return Base64.encodeBytes(encodedPassword);
     }
     
     protected final MessageDigest getMessageDigest() throws IllegalArgumentException {
