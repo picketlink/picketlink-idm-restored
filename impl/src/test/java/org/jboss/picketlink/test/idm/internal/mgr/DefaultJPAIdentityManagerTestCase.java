@@ -31,14 +31,12 @@ import java.io.ByteArrayInputStream;
 import java.io.InputStream;
 import java.security.cert.CertificateFactory;
 import java.security.cert.X509Certificate;
-import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 
 import org.jboss.picketlink.idm.internal.DefaultIdentityManager;
+import org.jboss.picketlink.idm.internal.SHASaltedPasswordEncoder;
 import org.jboss.picketlink.idm.internal.util.Base64;
-import org.jboss.picketlink.idm.model.Group;
-import org.jboss.picketlink.idm.model.Role;
 import org.jboss.picketlink.idm.model.User;
 import org.jboss.picketlink.idm.query.UserQuery;
 import org.jboss.picketlink.test.idm.internal.jpa.AbstractJPAIdentityStoreTestCase;
@@ -55,8 +53,7 @@ public class DefaultJPAIdentityManagerTestCase extends AbstractJPAIdentityStoreT
     @Test
     public void testDefaultIdentityManager() throws Exception {
 
-        DefaultIdentityManager im = new DefaultIdentityManager();
-        im.setIdentityStore(createIdentityStore()); // TODO: wiring needs a second look
+        DefaultIdentityManager im = createIdentityManager();
 
         // Let us create an user
         User user = im.createUser("pedroigor");
@@ -142,4 +139,26 @@ public class DefaultJPAIdentityManagerTestCase extends AbstractJPAIdentityStoreT
         user = im.getUser("pedroigor");
         assertNull(user);
     }
+
+    @Test
+    public void testPasswordEncoding() throws Exception {
+        DefaultIdentityManager identityManager = createIdentityManager();
+        
+        identityManager.setPasswordEncoder(new SHASaltedPasswordEncoder(256));
+        
+        // Let us create an user
+        User user = identityManager.createUser("pedroigor");
+        String password = "easypassword";
+        
+        identityManager.updatePassword(user, password);
+        
+        assertTrue(identityManager.validatePassword(user, password));
+    }
+    
+    private DefaultIdentityManager createIdentityManager() {
+        DefaultIdentityManager im = new DefaultIdentityManager();
+        im.setIdentityStore(createIdentityStore()); // TODO: wiring needs a second look
+        return im;
+    }
+
 }

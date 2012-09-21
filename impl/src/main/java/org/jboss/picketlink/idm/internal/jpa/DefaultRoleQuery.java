@@ -39,6 +39,7 @@ public class DefaultRoleQuery extends AbstractQuery<DefaultRoleQuery> implements
 
     private IdentityStore store;
     private Group group;
+    private IdentityType owner;
 
     public DefaultRoleQuery(IdentityStore jpaIdentityStore) {
         this.store = jpaIdentityStore;
@@ -56,8 +57,13 @@ public class DefaultRoleQuery extends AbstractQuery<DefaultRoleQuery> implements
 
     @Override
     public RoleQuery setOwner(IdentityType owner) {
-        // TODO Auto-generated method stub
-        return null;
+        this.owner = owner;
+        return this;
+    }
+
+    @Override
+    public IdentityType getOwner() {
+        return this.owner;
     }
 
     @Override

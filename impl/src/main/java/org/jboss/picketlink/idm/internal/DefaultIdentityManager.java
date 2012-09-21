@@ -32,6 +32,7 @@ import org.jboss.picketlink.idm.model.Group;
 import org.jboss.picketlink.idm.model.IdentityType;
 import org.jboss.picketlink.idm.model.Role;
 import org.jboss.picketlink.idm.model.User;
+import org.jboss.picketlink.idm.password.PasswordEncoder;
 import org.jboss.picketlink.idm.query.GroupQuery;
 import org.jboss.picketlink.idm.query.MembershipQuery;
 import org.jboss.picketlink.idm.query.RoleQuery;
@@ -46,6 +47,7 @@ import org.jboss.picketlink.idm.spi.IdentityStore;
  */
 public class DefaultIdentityManager implements IdentityManager {
     private IdentityStore store = null;
+    private PasswordEncoder passwordEncoder;
 
     public DefaultIdentityManager() {
     }
@@ -229,12 +231,25 @@ public class DefaultIdentityManager implements IdentityManager {
 
     @Override
     public boolean validatePassword(User user, String password) {
+        if  (this.passwordEncoder != null) {
+            password = this.passwordEncoder.encodePassword(user, password);
+        }
+        
         return store.validatePassword(user, password);
     }
 
     @Override
     public void updatePassword(User user, String password) {
-        store.updatePassword(user, password);
+        if (this.passwordEncoder != null) {
+            password = this.passwordEncoder.encodePassword(user, password);
+        }
+        
+        this.store.updatePassword(user, password);
+    }
+
+    @Override
+    public void setPasswordEncoder(PasswordEncoder encoder) {
+        this.passwordEncoder = encoder;
     }
 
     @Override

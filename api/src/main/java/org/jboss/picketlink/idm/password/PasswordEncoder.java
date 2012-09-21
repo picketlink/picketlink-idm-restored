@@ -19,56 +19,25 @@
  * Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
  * 02110-1301 USA, or see the FSF site: http://www.fsf.org.
  */
-package org.jboss.picketlink.idm.query;
 
-import java.util.List;
-import java.util.Map;
+package org.jboss.picketlink.idm.password;
 
-import org.jboss.picketlink.idm.model.Group;
-import org.jboss.picketlink.idm.model.IdentityType;
-import org.jboss.picketlink.idm.model.Role;
+import org.jboss.picketlink.idm.model.User;
 
 /**
- * RoleQuery. All applied conditions will be resolved with logical AND.
+ * <p>Represents different forms to encode user passwords.</p>
+ * 
+ * @author <a href="mailto:psilva@redhat.com">Pedro Silva</a>
+ * 
  */
-public interface RoleQuery {
-    // TODO: Javadocs
-    // TODO: Exceptions
-
-    // Operations
-
-    RoleQuery reset();
-
-    RoleQuery getImmutable();
-
-    List<Role> executeQuery(RoleQuery query);
-
-    List<Role> executeQuery();
-
-    // Conditions
-
-    RoleQuery setName(String name);
-
-    String getName();
-
-    RoleQuery setOwner(IdentityType owner);
-
-    IdentityType getOwner();
-
-    RoleQuery setGroup(Group group);
-
-    Group getGroup();
-
-    RoleQuery setGroup(String groupId);
-
-    RoleQuery setAttributeFilter(String name, String[] values);
-
-    Map<String, String[]> getAttributeFilters();
-
-    RoleQuery sort(boolean ascending);
-
-    void setRange(Range range);
-
-    Range getRange();
-
+public interface PasswordEncoder {
+    
+    /**
+     * <p>Encode the password for the given {@link User}.</p>
+     * 
+     * @param user
+     * @param rawPassword
+     * @return
+     */
+    String encodePassword(User user, String rawPassword);
 }
