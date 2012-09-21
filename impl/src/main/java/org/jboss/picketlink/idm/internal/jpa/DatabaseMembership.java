@@ -1,5 +1,6 @@
 package org.jboss.picketlink.idm.internal.jpa;
 
+import javax.persistence.CascadeType;
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.Id;
@@ -30,13 +31,13 @@ public class DatabaseMembership implements Membership {
     @GeneratedValue
     private long id;
 
-    @ManyToOne
+    @ManyToOne (cascade=CascadeType.ALL)
     private DatabaseUser user;
 
-    @ManyToOne
+    @ManyToOne (cascade=CascadeType.ALL)
     private DatabaseGroup group;
 
-    @ManyToOne
+    @ManyToOne (cascade=CascadeType.ALL)
     private DatabaseRole role;
 
     public DatabaseMembership() {

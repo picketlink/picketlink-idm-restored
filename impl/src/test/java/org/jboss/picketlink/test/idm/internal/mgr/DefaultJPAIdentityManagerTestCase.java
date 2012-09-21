@@ -57,7 +57,7 @@ public class DefaultJPAIdentityManagerTestCase extends AbstractJPAIdentityStoreT
 
     /**
      * <p>Tests a basic {@link IdentityManager} usage workflow.</p>
-     * 
+     *
      * @throws Exception
      */
     @Test
@@ -67,10 +67,10 @@ public class DefaultJPAIdentityManagerTestCase extends AbstractJPAIdentityStoreT
 
         // Let us create an user
         User user = im.createUser("pedroigor");
-        
+
         user.setFirstName("Pedro");
         user.setLastName("Igor");
-        
+
         assertNotNull(user);
 
         user = im.getUser("pedroigor");
@@ -129,12 +129,12 @@ public class DefaultJPAIdentityManagerTestCase extends AbstractJPAIdentityStoreT
         List<User> returnedUsers = query.executeQuery();
         assertNotNull(returnedUsers);
         assertEquals(1, returnedUsers.size());
-        
+
         Role adminRole = im.createRole("admin");
         Group testGroup = im.createGroup("Test Group");
-        
+
         im.grantRole(adminRole, user, testGroup);
-        
+
         Collection<Role> rolesByUser = im.getRoles(user, null);
 
         assertNotNull(rolesByUser);
@@ -152,24 +152,24 @@ public class DefaultJPAIdentityManagerTestCase extends AbstractJPAIdentityStoreT
 
     /**
      * <p>Tests the configuration of {@link SHASaltedPasswordEncoder} to encode passwords.</p>
-     * 
+     *
      * @throws Exception
      */
     @Test
     public void testPasswordEncoding() throws Exception {
         DefaultIdentityManager identityManager = createIdentityManager();
-        
+
         identityManager.setPasswordEncoder(new SHASaltedPasswordEncoder(256));
-        
+
         // Let us create an user
         User user = identityManager.createUser("pedroigor");
         String password = "easypassword";
-        
+
         identityManager.updatePassword(user, password);
-        
+
         assertTrue(identityManager.validatePassword(user, password));
     }
-    
+
     private DefaultIdentityManager createIdentityManager() {
         DefaultIdentityManager im = new DefaultIdentityManager();
         im.setIdentityStore(createIdentityStore()); // TODO: wiring needs a second look
