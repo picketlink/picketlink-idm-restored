@@ -26,15 +26,15 @@ import org.jboss.picketlink.idm.model.User;
 
 /**
  * <p>Represents different forms to encode user passwords.</p>
- * 
+ *
  * @author <a href="mailto:psilva@redhat.com">Pedro Silva</a>
- * 
+ *
  */
 public interface PasswordEncoder {
-    
+
     /**
      * <p>Encode the password for the given {@link User}.</p>
-     * 
+     *
      * @param user
      * @param rawPassword
      * @return

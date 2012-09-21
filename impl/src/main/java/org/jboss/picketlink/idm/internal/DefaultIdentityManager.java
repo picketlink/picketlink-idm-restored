@@ -234,7 +234,7 @@ public class DefaultIdentityManager implements IdentityManager {
         if  (this.passwordEncoder != null) {
             password = this.passwordEncoder.encodePassword(user, password);
         }
-        
+
         return store.validatePassword(user, password);
     }
 
@@ -243,7 +243,7 @@ public class DefaultIdentityManager implements IdentityManager {
         if (this.passwordEncoder != null) {
             password = this.passwordEncoder.encodePassword(user, password);
         }
-        
+
         this.store.updatePassword(user, password);
     }
 

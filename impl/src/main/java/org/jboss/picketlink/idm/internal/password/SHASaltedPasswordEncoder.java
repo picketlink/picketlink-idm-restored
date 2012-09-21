@@ -33,7 +33,7 @@ import org.jboss.picketlink.idm.password.PasswordEncoder;
 
 /**
  * <p>{@link PasswordEncoder} that uses SHA to created a salted hash the password. Passwords are returned with a Base64 encoding.</p>
- * 
+ *
  * @author <a href="mailto:psilva@redhat.com">Pedro Silva</a>
  *
  */
@@ -45,48 +45,48 @@ public class SHASaltedPasswordEncoder implements PasswordEncoder {
     public SHASaltedPasswordEncoder(int strength) {
         this.strength = strength;
     }
-    
+
     /* (non-Javadoc)
      * @see org.jboss.picketlink.idm.PasswordEncoder#encodePassword(java.lang.String, java.lang.Object)
      */
     @Override
     public String encodePassword(User user, String rawPassword) {
         MessageDigest messageDigest = getMessageDigest();
-        
+
         String salt = user.getAttribute(PASSWORD_SALT_USER_ATTRIBUTE);
-        
+
         // user does not have a salt. let's generate a fresh one.
         if (salt == null) {
             SecureRandom psuedoRng = null;
             String algorithm = "SHA1PRNG";
-            
+
             try {
                 psuedoRng = SecureRandom.getInstance(algorithm);
                 psuedoRng.setSeed(1024);
             } catch (NoSuchAlgorithmException e) {
                 throw new RuntimeException("Error getting SecureRandom instance: " + algorithm, e);
             }
-            
+
             salt = String.valueOf(psuedoRng.nextLong());
-            
+
             user.setAttribute(PASSWORD_SALT_USER_ATTRIBUTE, salt);
         }
-        
+
         String saltedPassword = rawPassword + salt.toString();
         byte[] encodedPassword = null;
-        
+
         try {
             encodedPassword = messageDigest.digest(saltedPassword.getBytes("UTF-8"));
         } catch (UnsupportedEncodingException e) {
             throw new RuntimeException("Error encoding password", e);
         }
-        
+
         return Base64.encodeBytes(encodedPassword);
     }
-    
+
     protected final MessageDigest getMessageDigest() throws IllegalArgumentException {
         String algorithm = "SHA-" + this.strength;
-        
+
         try {
             return MessageDigest.getInstance(algorithm);
         } catch (NoSuchAlgorithmException e) {

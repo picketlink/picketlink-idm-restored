@@ -164,11 +164,11 @@ public class JPAIdentityStore implements IdentityStore {
     public Membership createMembership(Role role, User user, Group group) {
         DatabaseMembership newMembership = new DatabaseMembership(role, user, group);
         DatabaseUser dbUser = (DatabaseUser) user;
-        
+
         dbUser.getMemberships().add(newMembership);
-        
+
         persist(newMembership);
-        
+
         return newMembership;
     }
 
