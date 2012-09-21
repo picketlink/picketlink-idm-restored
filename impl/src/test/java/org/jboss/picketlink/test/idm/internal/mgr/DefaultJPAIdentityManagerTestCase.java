@@ -31,12 +31,14 @@ import java.io.ByteArrayInputStream;
 import java.io.InputStream;
 import java.security.cert.CertificateFactory;
 import java.security.cert.X509Certificate;
+import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 
 import org.jboss.picketlink.idm.internal.DefaultIdentityManager;
-import org.jboss.picketlink.idm.internal.LDAPIdentityStore;
 import org.jboss.picketlink.idm.internal.util.Base64;
+import org.jboss.picketlink.idm.model.Group;
+import org.jboss.picketlink.idm.model.Role;
 import org.jboss.picketlink.idm.model.User;
 import org.jboss.picketlink.idm.query.UserQuery;
 import org.jboss.picketlink.test.idm.internal.jpa.AbstractJPAIdentityStoreTestCase;
@@ -120,6 +122,21 @@ public class DefaultJPAIdentityManagerTestCase extends AbstractJPAIdentityStoreT
         List<User> returnedUsers = query.executeQuery();
         assertNotNull(returnedUsers);
         assertEquals(1, returnedUsers.size());
+        
+//        Role adminRole = im.createRole("admin");
+//        Group testGroup = im.createGroup("Test Group");
+//        
+//        im.grantRole(adminRole, user, testGroup);
+//        
+//        Collection<Role> rolesByUser = im.getRoles(user, null);
+//
+//        assertNotNull(rolesByUser);
+//        assertEquals(1, rolesByUser.size());
+//
+//        Collection<Role> rolesByUserAndGroup = im.getRoles(user, testGroup);
+//
+//        assertNotNull(rolesByUserAndGroup);
+//        assertEquals(1, rolesByUserAndGroup.size());
 
         im.removeUser(user);
         user = im.getUser("pedroigor");
