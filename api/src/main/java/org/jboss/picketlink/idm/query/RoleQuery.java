@@ -43,6 +43,8 @@ public interface RoleQuery {
 
     List<Role> executeQuery(RoleQuery query);
 
+    List<Role> executeQuery();
+
     // Conditions
 
     RoleQuery setName(String name);

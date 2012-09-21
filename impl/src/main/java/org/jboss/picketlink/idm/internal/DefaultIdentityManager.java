@@ -23,9 +23,11 @@ package org.jboss.picketlink.idm.internal;
 
 import java.security.cert.X509Certificate;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.Date;
 
 import org.jboss.picketlink.idm.IdentityManager;
+import org.jboss.picketlink.idm.internal.jpa.DefaultRoleQuery;
 import org.jboss.picketlink.idm.model.Group;
 import org.jboss.picketlink.idm.model.IdentityType;
 import org.jboss.picketlink.idm.model.Role;
@@ -172,9 +174,20 @@ public class DefaultIdentityManager implements IdentityManager {
         throw new RuntimeException();
     }
 
+    @SuppressWarnings("unchecked")
     @Override
     public Collection<Role> getRoles(IdentityType identityType, Group group) {
-        throw new RuntimeException();
+        RoleQuery query = createRoleQuery();
+
+        // TODO: this should not happen because store impls must provide a valid instance. For now this is ignored and a empty list is returned.
+        if (query == null) {
+            return Collections.EMPTY_LIST;
+        }
+
+        query.setGroup(group);
+        query.setOwner(identityType);
+
+        return query.executeQuery();
     }
 
     @Override
@@ -250,6 +263,6 @@ public class DefaultIdentityManager implements IdentityManager {
 
     @Override
     public RoleQuery createRoleQuery() {
-        throw new RuntimeException();
+        return new DefaultRoleQuery(this.store);
     }
 }

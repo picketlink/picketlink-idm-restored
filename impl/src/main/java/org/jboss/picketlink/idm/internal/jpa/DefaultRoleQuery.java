@@ -50,6 +50,11 @@ public class DefaultRoleQuery extends AbstractQuery<DefaultRoleQuery> implements
     }
 
     @Override
+    public List<Role> executeQuery() {
+        return this.store.executeQuery(this, null);
+    }
+
+    @Override
     public RoleQuery setOwner(IdentityType owner) {
         // TODO Auto-generated method stub
         return null;
