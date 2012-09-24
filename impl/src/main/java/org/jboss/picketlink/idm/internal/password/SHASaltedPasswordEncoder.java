@@ -33,6 +33,7 @@ import org.jboss.picketlink.idm.password.PasswordEncoder;
 
 /**
  * <p>{@link PasswordEncoder} that uses SHA to created a salted hash the password. Passwords are returned with a Base64 encoding.</p>
+ * <p>The provided password is salted before the encoding. The salt is stored as an user's attribute with name <code>PASSWORD_SALT_USER_ATTRIBUTE</code>.</p>
  *
  * @author <a href="mailto:psilva@redhat.com">Pedro Silva</a>
  *
@@ -72,16 +73,26 @@ public class SHASaltedPasswordEncoder implements PasswordEncoder {
             user.setAttribute(PASSWORD_SALT_USER_ATTRIBUTE, salt);
         }
 
-        String saltedPassword = rawPassword + salt.toString();
         byte[] encodedPassword = null;
 
         try {
-            encodedPassword = messageDigest.digest(saltedPassword.getBytes("UTF-8"));
+            encodedPassword = messageDigest.digest(saltPassword(rawPassword, salt).getBytes("UTF-8"));
         } catch (UnsupportedEncodingException e) {
             throw new RuntimeException("Error encoding password", e);
         }
 
         return Base64.encodeBytes(encodedPassword);
+    }
+
+    /**
+     * <p>Salt the password with the specified salt value.</p>
+     *
+     * @param rawPassword
+     * @param salt
+     * @return
+     */
+    private String saltPassword(String rawPassword, String salt) {
+        return rawPassword + salt.toString();
     }
 
     protected final MessageDigest getMessageDigest() throws IllegalArgumentException {
