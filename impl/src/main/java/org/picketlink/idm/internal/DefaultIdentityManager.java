@@ -281,4 +281,10 @@ public class DefaultIdentityManager implements IdentityManager {
     public RoleQuery createRoleQuery() {
         return new DefaultRoleQuery(this.store);
     }
+
+    @Override
+    public IdentityType lookupIdentityByKey(String key) {
+        // TODO Auto-generated method stub
+        return null;
+    }
 }
