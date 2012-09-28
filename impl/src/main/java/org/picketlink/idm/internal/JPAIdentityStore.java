@@ -86,6 +86,19 @@ public class JPAIdentityStore implements IdentityStore {
     }
 
     /*
+    * (non-Javadoc)
+    *
+    * @see org.picketlink.idm.spi.IdentityStore#createUser(org.picketlink.idm.model.User)
+    */
+    @Override
+    public User createUser(User newUser) {
+
+        persist(newUser);
+
+        return newUser;
+    }
+
+    /*
      * (non-Javadoc)
      *
      * @see org.picketlink.idm.spi.IdentityStore#removeUser(org.picketlink.idm.model.User)
