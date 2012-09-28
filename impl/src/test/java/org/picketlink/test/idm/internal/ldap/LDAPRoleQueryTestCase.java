@@ -23,6 +23,7 @@ package org.picketlink.test.idm.internal.ldap;
 
 import static junit.framework.Assert.assertEquals;
 import static junit.framework.Assert.assertFalse;
+import static junit.framework.Assert.assertTrue;
 
 import java.util.List;
 
@@ -30,6 +31,7 @@ import org.junit.Before;
 import org.junit.Test;
 import org.picketlink.idm.model.Group;
 import org.picketlink.idm.model.Role;
+import org.picketlink.idm.model.SimpleUser;
 import org.picketlink.idm.model.User;
 import org.picketlink.idm.query.GroupQuery;
 import org.picketlink.idm.query.RoleQuery;
@@ -72,6 +74,10 @@ public class LDAPRoleQueryTestCase extends AbstractLDAPIdentityManagerTestCase {
         query.setName(this.role.getName());
 
         assertQueryResult(query);
+        
+        query.setName("Invalid");
+        
+        assertTrue(query.executeQuery().isEmpty());
     }
 
     /**
@@ -89,6 +95,10 @@ public class LDAPRoleQueryTestCase extends AbstractLDAPIdentityManagerTestCase {
         query.setGroup(this.group);
 
         assertQueryResult(query);
+        
+        query.setGroup("Invalid");
+        
+        assertTrue(query.executeQuery().isEmpty());
     }
     
     /**
@@ -105,6 +115,10 @@ public class LDAPRoleQueryTestCase extends AbstractLDAPIdentityManagerTestCase {
         query.setOwner(this.user);
 
         assertQueryResult(query);
+        
+        query.setOwner(getIdentityManager().getUser("guest"));
+        
+        assertTrue(query.executeQuery().isEmpty());
     }
 
     /**

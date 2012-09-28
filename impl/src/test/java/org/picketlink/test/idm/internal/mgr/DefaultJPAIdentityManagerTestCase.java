@@ -45,7 +45,7 @@ import org.picketlink.idm.model.Group;
 import org.picketlink.idm.model.Role;
 import org.picketlink.idm.model.User;
 import org.picketlink.idm.query.UserQuery;
-import org.picketlink.test.idm.internal.jpa.AbstractJPAIdentityStoreTestCase;
+import org.picketlink.test.idm.internal.jpa.AbstractJPAIdentityManagerTestCase;
 
 /**
  * Unit test the {@link DefaultIdentityManager} using the {@link JPAIdentityStore}
@@ -53,7 +53,7 @@ import org.picketlink.test.idm.internal.jpa.AbstractJPAIdentityStoreTestCase;
  * @author anil saldhana
  * @since Sep 6, 2012
  */
-public class DefaultJPAIdentityManagerTestCase extends AbstractJPAIdentityStoreTestCase {
+public class DefaultJPAIdentityManagerTestCase extends AbstractJPAIdentityManagerTestCase {
 
     /**
      * <p>

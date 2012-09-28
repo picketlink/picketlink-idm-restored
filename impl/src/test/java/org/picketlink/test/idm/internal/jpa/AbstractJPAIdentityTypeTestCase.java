@@ -26,26 +26,26 @@ import static junit.framework.Assert.assertEquals;
 import static junit.framework.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 
+import org.picketlink.idm.IdentityManager;
 import org.picketlink.idm.model.IdentityType;
-import org.picketlink.idm.spi.IdentityStore;
 
 /**
+ * <p>Base class for {@link IdentityType} test cases.</p>
+ * 
  * @author <a href="mailto:psilva@redhat.com">Pedro Silva</a>
  *
  */
-public abstract class AbstractJPAIdentityTypeTestCase extends AbstractJPAIdentityStoreTestCase {
+public abstract class AbstractJPAIdentityTypeTestCase extends AbstractJPAIdentityManagerTestCase {
 
     /**
      * <p>
-     * Tests the setup of some attributes for an user.
+     * Tests the setup of some attributes for an {@link IdentityType}.
      * </p>
      *
      * @throws Exception
      */
-    public void testAddAttributes() throws Exception {
-        IdentityStore identityStore = createIdentityStore();
-
-        IdentityType identityType = getIdentityTypeFromDatabase(identityStore);
+    protected void testAddAttributes() throws Exception {
+        IdentityType identityType = getIdentityTypeFromDatabase(getIdentityManager());
 
         identityType.setAttribute("QuestionTotal", "2");
         identityType.setAttribute("Question1", "What is favorite toy?");
@@ -61,19 +61,19 @@ public abstract class AbstractJPAIdentityTypeTestCase extends AbstractJPAIdentit
         assertEquals("value3", identityType.getAttributeValues("MultiValuedAttribute")[2]);
     }
 
-    protected abstract IdentityType getIdentityTypeFromDatabase(IdentityStore identityStore);
+    protected abstract IdentityType getIdentityTypeFromDatabase(IdentityManager identityStore);
 
     /**
      * <p>
-     * Tests the removal of some attributes for an user.
+     * Tests the removal of some attributes for an {@link IdentityType}.
      * </p>
      *
      * @throws Exception
      */
-    public void testRemoveAttributes() throws Exception {
-        IdentityStore identityStore = createIdentityStore();
+    protected void testRemoveAttributes() throws Exception {
+        IdentityManager identityManager = getIdentityManager();
 
-        IdentityType identityType = getIdentityTypeFromDatabase(identityStore);
+        IdentityType identityType = getIdentityTypeFromDatabase(identityManager);
 
         assertNotNull(identityType.getAttributeValues("MultiValuedAttribute"));
 

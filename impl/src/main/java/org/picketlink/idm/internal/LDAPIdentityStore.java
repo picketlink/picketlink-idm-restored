@@ -106,10 +106,11 @@ public class LDAPIdentityStore implements IdentityStore, LDAPChangeNotificationH
      */
     @Override
     public User createUser(String name) {
-        LDAPUser user = new LDAPUser(name, userDNSuffix, this);
+        LDAPUser user = new LDAPUser(name, this);
 
         user.setLookup(this);
         user.setLDAPChangeNotificationHandler(this);
+        user.setUserDNSuffix(userDNSuffix);
 
         try {
             ctx.bind(user.getDN(), user);
@@ -125,11 +126,15 @@ public class LDAPIdentityStore implements IdentityStore, LDAPChangeNotificationH
     */
     @Override
     public User createUser(User user) {
-
-        LDAPUser ldapUser = (LDAPUser) getUser(user.getId());
+        if (user.getId() == null) {
+            throw new RuntimeException("No identifier was provided. You should provide one before storing the user.");
+        }
+        
+        LDAPUser ldapUser = (LDAPUser) user;
 
         ldapUser.setLookup(this);
         ldapUser.setLDAPChangeNotificationHandler(this);
+        ldapUser.setUserDNSuffix(userDNSuffix);
 
         try {
             ctx.bind(ldapUser.getDN(), ldapUser);
@@ -483,8 +488,13 @@ public class LDAPIdentityStore implements IdentityStore, LDAPChangeNotificationH
 
                 LDAPGroup childGroup = new LDAPGroup(groupAttributes, groupDNSuffix);
 
-                if (query.getParentGroup() != null && getParentGroup(childGroup) == null) {
-                    isGroupSelected = false;
+                if (query.getParentGroup() != null) {
+                    Group parentGroup = getParentGroup(childGroup);
+                    
+                    if (parentGroup == null || !query.getParentGroup().getId().equals(parentGroup.getId())) {
+                        isGroupSelected = false;
+                    }
+
                 }
 
                 if (isGroupSelected) {

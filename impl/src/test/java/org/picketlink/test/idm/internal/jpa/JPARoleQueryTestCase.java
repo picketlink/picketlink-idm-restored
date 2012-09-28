@@ -23,18 +23,18 @@ package org.picketlink.test.idm.internal.jpa;
 
 import static junit.framework.Assert.assertEquals;
 import static junit.framework.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
 
 import java.util.List;
 
 import org.junit.Before;
 import org.junit.Test;
-import org.picketlink.idm.internal.jpa.DefaultRoleQuery;
+import org.picketlink.idm.IdentityManager;
 import org.picketlink.idm.model.Group;
 import org.picketlink.idm.model.Role;
 import org.picketlink.idm.model.User;
 import org.picketlink.idm.query.GroupQuery;
 import org.picketlink.idm.query.RoleQuery;
-import org.picketlink.idm.spi.IdentityStore;
 
 /**
  * <p>
@@ -43,7 +43,7 @@ import org.picketlink.idm.spi.IdentityStore;
  *
  * @author <a href="mailto:psilva@redhat.com">Pedro Silva</a>
  */
-public class JPARoleQueryTestCase extends AbstractJPAIdentityStoreTestCase {
+public class JPARoleQueryTestCase extends AbstractJPAIdentityManagerTestCase {
 
     private static final String USER_NAME = "theuser";
     private static final String GROUP_NAME = "Administrators";
@@ -78,10 +78,10 @@ public class JPARoleQueryTestCase extends AbstractJPAIdentityStoreTestCase {
         query.setName(this.role.getName());
 
         assertQueryResult(query);
-    }
-
-    private DefaultRoleQuery createRoleQuery() {
-        return new DefaultRoleQuery(createIdentityStore());
+        
+        query.setName("Invalid");
+        
+        assertTrue(query.executeQuery().isEmpty());
     }
 
     /**
@@ -99,6 +99,10 @@ public class JPARoleQueryTestCase extends AbstractJPAIdentityStoreTestCase {
         query.setGroup(this.group);
 
         assertQueryResult(query);
+        
+        query.setGroup("12121");
+        
+        assertTrue(query.executeQuery().isEmpty());
     }
 
     /**
@@ -117,6 +121,10 @@ public class JPARoleQueryTestCase extends AbstractJPAIdentityStoreTestCase {
         query.setAttributeFilter("attribute2", new String[] { "attributeValue2" });
 
         assertQueryResult(query);
+        
+        query.setAttributeFilter("Invalid", new String [] {"Invalid"});
+        
+        assertTrue(query.executeQuery().isEmpty());
     }
 
     /**
@@ -125,30 +133,30 @@ public class JPARoleQueryTestCase extends AbstractJPAIdentityStoreTestCase {
      * </p>
      */
     private void loadRoles() {
-        IdentityStore identityStore = createIdentityStore();
+        IdentityManager identityManager = getIdentityManager();
 
-        this.group = identityStore.getGroup(GROUP_NAME);
-        this.role = identityStore.getRole(ROLE_NAME + 1);
-        this.user = identityStore.getUser(USER_NAME);
+        this.group = identityManager.getGroup(GROUP_NAME);
+        this.role = identityManager.getRole(ROLE_NAME + 1);
+        this.user = identityManager.getUser(USER_NAME);
 
         // if groups are already loaded then do nothing
         if (this.role != null) {
             return;
         }
 
-        this.group = identityStore.createGroup(GROUP_NAME, null);
-        this.user = identityStore.createUser(USER_NAME);
+        this.group = identityManager.createGroup(GROUP_NAME, (Group) null);
+        this.user = identityManager.createUser(USER_NAME);
 
         for (int i = 0; i < 10; i++) {
             int index = i + 1;
-            Role currentRole = identityStore.createRole(ROLE_NAME + index);
+            Role currentRole = identityManager.createRole(ROLE_NAME + index);
 
             // store the instance used for testing
             if (this.role == null) {
                 this.role = currentRole;
             }
 
-            identityStore.createMembership(currentRole, this.user, this.group);
+            identityManager.grantRole(currentRole, this.user, this.group);
 
             currentRole.setAttribute("attribute1", "attributeValue1");
             currentRole.setAttribute("attribute1", "attributeValue12");
@@ -170,6 +178,10 @@ public class JPARoleQueryTestCase extends AbstractJPAIdentityStoreTestCase {
 
         assertFalse(result.isEmpty());
         assertEquals(this.role.getName(), result.get(0).getName());
+    }
+
+    private RoleQuery createRoleQuery() {
+        return getIdentityManager().createRoleQuery();
     }
 
 }

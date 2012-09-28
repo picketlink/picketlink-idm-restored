@@ -25,15 +25,14 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 
-import org.picketlink.idm.internal.JPAIdentityStore;
+import org.junit.Test;
+import org.picketlink.idm.IdentityManager;
 import org.picketlink.idm.model.Group;
 import org.picketlink.idm.model.IdentityType;
-import org.picketlink.idm.spi.IdentityStore;
-import org.junit.Test;
 
 /**
  * <p>
- * Tests the creation of groups using the {@link JPAIdentityStore}.
+ * Tests the creation of groups using the {@link JPAIdentityManager}.
  * </p>
  *
  * @author <a href="mailto:psilva@redhat.com">Pedro Silva</a>
@@ -52,10 +51,10 @@ public class JPAGroupTestCase extends AbstractJPAIdentityTypeTestCase {
      */
     @Test
     public void testGroupStore() throws Exception {
-        IdentityStore identityStore = createIdentityStore();
+        IdentityManager identitymanager = getIdentityManager();
 
-        Group parentGroup = identityStore.createGroup(GROUP_PARENT_NAME, null);
-        Group group = identityStore.createGroup(GROUP_NAME, parentGroup);
+        Group parentGroup = identitymanager.createGroup(GROUP_PARENT_NAME, (Group) null);
+        Group group = identitymanager.createGroup(GROUP_NAME, parentGroup);
 
         assertNotNull(group);
         assertNotNull(group.getKey());
@@ -76,9 +75,9 @@ public class JPAGroupTestCase extends AbstractJPAIdentityTypeTestCase {
      * @throws Exception
      */
     public void testGetGroup() throws Exception {
-        IdentityStore identityStore = createIdentityStore();
+        IdentityManager identityManager = getIdentityManager();
 
-        Group group = identityStore.getGroup(GROUP_NAME);
+        Group group = identityManager.getGroup(GROUP_NAME);
 
         assertNotNull(group);
         assertNotNull(group.getParentGroup());
@@ -97,21 +96,21 @@ public class JPAGroupTestCase extends AbstractJPAIdentityTypeTestCase {
      * @throws Exception
      */
     public void testRemoveGroup() throws Exception {
-        IdentityStore identityStore = createIdentityStore();
+        IdentityManager identityManager = getIdentityManager();
 
-        Group group = identityStore.getGroup(GROUP_NAME);
+        Group group = identityManager.getGroup(GROUP_NAME);
 
         assertNotNull(group);
 
-        identityStore.removeGroup(group);
+        identityManager.removeGroup(group);
 
-        group = identityStore.getGroup(GROUP_NAME);
+        group = identityManager.getGroup(GROUP_NAME);
 
         assertNull(group);
     }
 
     @Override
-    protected IdentityType getIdentityTypeFromDatabase(IdentityStore identityStore) {
+    protected IdentityType getIdentityTypeFromDatabase(IdentityManager identityStore) {
         return identityStore.getGroup(GROUP_NAME);
     }
 

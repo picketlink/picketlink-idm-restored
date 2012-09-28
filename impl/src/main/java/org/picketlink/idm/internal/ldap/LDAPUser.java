@@ -65,12 +65,13 @@ public class LDAPUser extends DirContextAdaptor implements User {
 
         attributes.put(oc);
     }
+    
 
-    public LDAPUser(String userId, String userDNSuffix, ManagedAttributeLookup lookup) {
+
+    public LDAPUser(String userId, ManagedAttributeLookup lookup) {
         this();
         setLookup(lookup);
         setId(userId);
-        setUserDNSuffix(userDNSuffix);
         setFullName(userId);
     }
 
