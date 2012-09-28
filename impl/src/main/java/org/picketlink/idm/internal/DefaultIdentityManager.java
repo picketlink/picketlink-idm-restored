@@ -26,13 +26,14 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.Date;
 
-import org.picketlink.idm.password.PasswordEncoder;
 import org.picketlink.idm.IdentityManager;
+import org.picketlink.idm.internal.jpa.DefaultGroupQuery;
 import org.picketlink.idm.internal.jpa.DefaultRoleQuery;
 import org.picketlink.idm.model.Group;
 import org.picketlink.idm.model.IdentityType;
 import org.picketlink.idm.model.Role;
 import org.picketlink.idm.model.User;
+import org.picketlink.idm.password.PasswordEncoder;
 import org.picketlink.idm.query.GroupQuery;
 import org.picketlink.idm.query.MembershipQuery;
 import org.picketlink.idm.query.RoleQuery;
@@ -210,14 +211,12 @@ public class DefaultIdentityManager implements IdentityManager {
 
     @Override
     public UserQuery createUserQuery() {
-        DefaultUserQuery userQuery = new DefaultUserQuery();
-        userQuery.setStore(store);
-        return userQuery;
+        return new DefaultUserQuery(this.store);
     }
 
     @Override
     public GroupQuery createGroupQuery() {
-        throw new RuntimeException();
+        return new DefaultGroupQuery(this.store);
     }
 
     /*

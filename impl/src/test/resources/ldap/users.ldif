@@ -23,6 +23,11 @@ objectclass: top
 objectclass: organizationalUnit
 ou: Roles
 
+dn: ou=Groups,dc=jboss,dc=org
+objectclass: top
+objectclass: organizationalUnit
+ou: Groups
+
 dn: cn=Echo,ou=Roles,dc=jboss,dc=org
 objectClass: top
 objectClass: groupOfNames
@@ -37,3 +42,17 @@ cn: TheDuke
 description: TheDuke role context
 member: uid=jduke,ou=People,dc=jboss,dc=org
 
+dn: cn=Test Group,ou=Groups,dc=jboss,dc=org
+objectClass: top
+objectClass: groupOfNames
+cn: Test Group
+description: the Test Group
+member: cn=Echo,ou=Roles,dc=jboss,dc=org
+member: uid=jduke,ou=People,dc=jboss,dc=org
+
+dn: cn=Test Parent Group,ou=Groups,dc=jboss,dc=org
+objectClass: top
+objectClass: groupOfNames
+cn: Test Parent Group
+description: the Test Parent Group group
+member: cn=Test Group,ou=Groups,dc=jboss,dc=org

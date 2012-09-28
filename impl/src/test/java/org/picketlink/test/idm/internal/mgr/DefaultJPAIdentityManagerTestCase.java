@@ -172,6 +172,8 @@ public class DefaultJPAIdentityManagerTestCase extends AbstractJPAIdentityStoreT
         identityManager.updatePassword(user, password);
 
         assertTrue(identityManager.validatePassword(user, password));
+        
+        identityManager.removeUser(user);
     }
 
     private DefaultIdentityManager createIdentityManager() {

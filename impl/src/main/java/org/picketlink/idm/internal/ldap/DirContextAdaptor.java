@@ -225,6 +225,15 @@ public class DirContextAdaptor implements DirContext, IdentityType {
         return attributes;
     }
 
+    /**
+     * <p>Returns the LDAP attributes.</p>
+     *
+     * @return
+     */
+    public Attributes getLDAPAttributes() {
+        return this.attributes;
+    }
+
     @Override
     public Attributes getAttributes(Name name, String[] ids) throws NamingException {
         return getAttributes(name.toString(), ids);
@@ -375,8 +384,24 @@ public class DirContextAdaptor implements DirContext, IdentityType {
     public void setAttribute(String name, String value) {
         attributes.put(name, value);
         Attribute anAttribute = attributes.get(name);
+
         if (handler != null) {
             handler.handle(new LDAPObjectChangedNotification(this, NType.ADD_ATTRIBUTE, anAttribute));
+        }
+    }
+
+    /**
+     * <p>Replaces an attribute and reflects the change in the LDAP tree.</p>
+     *
+     * @param name
+     * @param value
+     */
+    protected void replaceAttribute(String name, String value) {
+        attributes.put(name, value);
+        Attribute anAttribute = attributes.get(name);
+
+        if (handler != null) {
+            handler.handle(new LDAPObjectChangedNotification(this, NType.REPLACE_ATTRIBUTE, anAttribute));
         }
     }
 

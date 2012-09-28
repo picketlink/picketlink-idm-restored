@@ -31,20 +31,23 @@ import java.io.ByteArrayInputStream;
 import java.io.InputStream;
 import java.security.cert.CertificateFactory;
 import java.security.cert.X509Certificate;
+import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 
+import org.junit.Before;
+import org.junit.Test;
+import org.picketbox.test.ldap.AbstractLDAPTest;
 import org.picketlink.idm.internal.DefaultIdentityManager;
 import org.picketlink.idm.internal.LDAPIdentityStore;
 import org.picketlink.idm.internal.config.LDAPConfiguration;
 import org.picketlink.idm.internal.config.LDAPConfigurationBuilder;
 import org.picketlink.idm.internal.util.Base64;
+import org.picketlink.idm.model.Group;
+import org.picketlink.idm.model.Role;
 import org.picketlink.idm.model.User;
 import org.picketlink.idm.query.UserQuery;
 import org.picketlink.idm.spi.IdentityStoreConfigurationBuilder;
-import org.junit.Before;
-import org.junit.Test;
-import org.picketbox.test.ldap.AbstractLDAPTest;
 
 /**
  * Unit test the {@link DefaultIdentityManager} using the {@link LDAPIdentityStore}.
@@ -62,7 +65,6 @@ public class DefaultLDAPIdentityManagerTestCase extends AbstractLDAPTest {
 
     @Test
     public void testDefaultIdentityManager() throws Exception {
-
         LDAPIdentityStore store = new LDAPIdentityStore();
         store.setConfiguration(getConfiguration());
 
@@ -70,11 +72,17 @@ public class DefaultLDAPIdentityManagerTestCase extends AbstractLDAPTest {
         im.setIdentityStore(store); // TODO: wiring needs a second look
 
         // Let us create an user
-        User user = im.createUser("Anil Saldhana");
+        User user = im.createUser("asaldhan");
+
         assertNotNull(user);
 
-        User anil = im.getUser("Anil Saldhana");
+        user.setFirstName("Anil");
+        user.setLastName("Saldhana");
+
+        User anil = im.getUser("asaldhan");
+
         assertNotNull(anil);
+
         assertEquals("Anil Saldhana", anil.getFullName());
         assertEquals("Anil", anil.getFirstName());
         assertEquals("Saldhana", anil.getLastName());
@@ -101,7 +109,7 @@ public class DefaultLDAPIdentityManagerTestCase extends AbstractLDAPTest {
         im.updateCertificate(anil, cert);
 
         // let us retrieve the attributes from ldap store and see if they are the same
-        anil = im.getUser("Anil Saldhana");
+        anil = im.getUser("asaldhan");
         Map<String, String[]> attributes = anil.getAttributes();
         assertNotNull(attributes);
 
@@ -140,8 +148,36 @@ public class DefaultLDAPIdentityManagerTestCase extends AbstractLDAPTest {
         assertNotNull(returnedUsers);
         assertEquals(1, returnedUsers.size());
 
+        Role adminRole = im.createRole("admin");
+        Group testGroup = im.createGroup("Fake Group");
+        Group unusedGroup = im.createGroup("Unused Group");
+
+        // grant adminRole to anil and put the user in the testGroup
+        im.grantRole(adminRole, anil, testGroup);
+
+        // get the roles for anil. We should have only adminRole
+        Collection<Role> rolesByUser = im.getRoles(anil, null);
+
+        assertNotNull(rolesByUser);
+        assertEquals(1, rolesByUser.size());
+
+        // get the roles for anil if the role is member of the testGroup. We should have only adminRole
+        Collection<Role> rolesByUserAndGroup = im.getRoles(anil, testGroup);
+
+        assertNotNull(rolesByUserAndGroup);
+        assertEquals(1, rolesByUserAndGroup.size());
+
+        // get the roles for anil if the role is member of unusedGroup. No role should be returned because only the testGroup is
+        // associated with the adminRole
+        Collection<Role> emptyRolesForUnusedGroup = im.getRoles(anil, unusedGroup);
+
+        assertNotNull(emptyRolesForUnusedGroup);
+        assertTrue(emptyRolesForUnusedGroup.isEmpty());
+
         im.removeUser(anil);
-        anil = im.getUser("Anil Saldhana");
+
+        anil = im.getUser("asaldhan");
+
         assertNull(anil);
 
     }

@@ -30,6 +30,7 @@ import java.util.Set;
 
 import javax.persistence.EntityManager;
 import javax.persistence.NoResultException;
+import javax.persistence.NonUniqueResultException;
 import javax.persistence.Query;
 import javax.persistence.TypedQuery;
 import javax.persistence.criteria.CriteriaBuilder;
@@ -609,6 +610,8 @@ public class JPAIdentityStore implements IdentityStore {
                     loadedUser = query.getSingleResult();
                 } catch (NoResultException nre) {
                     // TODO: what to do when this happens
+                } catch (NonUniqueResultException nure) {
+                 // TODO: what to do when this happens
                 }
 
                 return loadedUser;
@@ -647,4 +650,6 @@ public class JPAIdentityStore implements IdentityStore {
     public boolean updateCertificate(User user, X509Certificate certificate) {
         return false;
     }
+
+
 }

@@ -26,14 +26,14 @@ import static org.junit.Assert.assertFalse;
 
 import java.util.List;
 
+import org.junit.Before;
+import org.junit.Test;
 import org.picketlink.idm.internal.DefaultUserQuery;
 import org.picketlink.idm.model.Group;
 import org.picketlink.idm.model.Role;
 import org.picketlink.idm.model.User;
 import org.picketlink.idm.query.UserQuery;
 import org.picketlink.idm.spi.IdentityStore;
-import org.junit.Before;
-import org.junit.Test;
 
 /**
  * <p>
@@ -71,7 +71,7 @@ public class JPAUserQueryTestCase extends AbstractJPAIdentityStoreTestCase {
      */
     @Test
     public void testfindByUserName() throws Exception {
-        UserQuery query = new DefaultUserQuery();
+        UserQuery query = new DefaultUserQuery(createIdentityStore());
 
         query.setName(this.user.getKey());
 
@@ -87,7 +87,7 @@ public class JPAUserQueryTestCase extends AbstractJPAIdentityStoreTestCase {
      */
     @Test
     public void testfindByFirstName() throws Exception {
-        UserQuery query = new DefaultUserQuery();
+        UserQuery query = new DefaultUserQuery(createIdentityStore());
 
         query.setFirstName(this.user.getFirstName());
 
@@ -103,7 +103,7 @@ public class JPAUserQueryTestCase extends AbstractJPAIdentityStoreTestCase {
      */
     @Test
     public void testfindByLastName() throws Exception {
-        UserQuery query = new DefaultUserQuery();
+        UserQuery query = new DefaultUserQuery(createIdentityStore());
 
         query.setLastName(this.user.getLastName());
 
@@ -119,7 +119,7 @@ public class JPAUserQueryTestCase extends AbstractJPAIdentityStoreTestCase {
      */
     @Test
     public void testfindByEmail() throws Exception {
-        UserQuery query = new DefaultUserQuery();
+        UserQuery query = new DefaultUserQuery(createIdentityStore());
 
         query.setEmail(this.user.getEmail());
 
@@ -135,7 +135,7 @@ public class JPAUserQueryTestCase extends AbstractJPAIdentityStoreTestCase {
      */
     @Test
     public void testfindByRole() throws Exception {
-        UserQuery query = new DefaultUserQuery();
+        UserQuery query = new DefaultUserQuery(createIdentityStore());
 
         query.setRole("admin" + 1);
 
@@ -151,7 +151,7 @@ public class JPAUserQueryTestCase extends AbstractJPAIdentityStoreTestCase {
      */
     @Test
     public void testfindByGroup() throws Exception {
-        UserQuery query = new DefaultUserQuery();
+        UserQuery query = new DefaultUserQuery(createIdentityStore());
 
         query.setRelatedGroup("Administrators" + 1);
 
@@ -167,7 +167,7 @@ public class JPAUserQueryTestCase extends AbstractJPAIdentityStoreTestCase {
      */
     @Test
     public void testfindByAttributes() throws Exception {
-        UserQuery query = new DefaultUserQuery();
+        UserQuery query = new DefaultUserQuery(createIdentityStore());
 
         query.setName(this.user.getKey());
         query.setAttributeFilter("attribute1", new String[] { "attributeValue1", "attributeValue12", "attributeValue123" });
@@ -184,9 +184,7 @@ public class JPAUserQueryTestCase extends AbstractJPAIdentityStoreTestCase {
      * @param query
      */
     private void assertQueryResult(UserQuery query) {
-        IdentityStore identityStore = createIdentityStore();
-
-        List<User> result = identityStore.executeQuery(query, null);
+        List<User> result = query.executeQuery();
 
         assertFalse(result.isEmpty());
         assertEquals(1, result.size());
