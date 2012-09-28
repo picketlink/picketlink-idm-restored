@@ -26,7 +26,9 @@ import static junit.framework.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 
 import org.picketlink.idm.internal.JPAIdentityStore;
+import org.picketlink.idm.internal.jpa.DatabaseUser;
 import org.picketlink.idm.model.IdentityType;
+import org.picketlink.idm.model.SimpleUser;
 import org.picketlink.idm.model.User;
 import org.picketlink.idm.spi.IdentityStore;
 import org.junit.Test;
@@ -62,6 +64,34 @@ public class JPAUserTestCase extends AbstractJPAIdentityTypeTestCase {
         user.setEmail(USER_EMAIL);
         user.setFirstName(USER_FIRST_NAME);
         user.setLastName(USER_LAST_NAME);
+
+        assertUserBasicInformation(user);
+
+        testAddAttributes();
+
+        testGetUser();
+
+        testRemoveUser();
+    }
+
+    /**
+     * <p>
+     * Tests the creation of an {@link User} with populating some basic attributes.
+     * </p>
+     *
+     * @throws Exception
+     */
+    @Test
+    public void testSimpleUserStore() throws Exception {
+        IdentityStore identityStore = createIdentityStore();
+
+        User user = new DatabaseUser(USER_USERNAME);
+
+        user.setEmail(USER_EMAIL);
+        user.setFirstName(USER_FIRST_NAME);
+        user.setLastName(USER_LAST_NAME);
+
+        user = identityStore.createUser(user);
 
         assertUserBasicInformation(user);
 

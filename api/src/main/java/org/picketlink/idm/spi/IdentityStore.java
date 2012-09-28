@@ -59,6 +59,8 @@ public interface IdentityStore {
 
     User createUser(String name);
 
+    User createUser(User user);
+
     void removeUser(User user);
 
     User getUser(String name);

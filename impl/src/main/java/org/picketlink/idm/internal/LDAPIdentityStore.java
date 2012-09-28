@@ -121,6 +121,26 @@ public class LDAPIdentityStore implements IdentityStore, LDAPChangeNotificationH
     }
 
     /* (non-Javadoc)
+    * @see org.picketlink.idm.spi.IdentityStore#createUser(org.picketlink.idm.model.User)
+    */
+    @Override
+    public User createUser(User user) {
+
+        LDAPUser ldapUser = (LDAPUser) getUser(user.getId());
+
+        ldapUser.setLookup(this);
+        ldapUser.setLDAPChangeNotificationHandler(this);
+
+        try {
+            ctx.bind(ldapUser.getDN(), ldapUser);
+        } catch (NamingException e) {
+            throw new RuntimeException(e);
+        }
+
+        return ldapUser;
+    }
+
+    /* (non-Javadoc)
      * @see org.picketlink.idm.spi.IdentityStore#removeUser(org.picketlink.idm.model.User)
      */
     @SuppressWarnings("unused")

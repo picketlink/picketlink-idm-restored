@@ -48,6 +48,11 @@ import org.picketbox.test.ldap.AbstractLDAPTest;
  * @since Sep 4, 2012
  */
 public class LDAPUserTestCase extends AbstractLDAPTest {
+
+    private static final String USER_FULL_NAME = "Anil Saldhana";
+    private static final String USER_FIRSTNAME = "Anil";
+    private static final String USER_LASTNAME = "Saldhana";
+
     @Before
     public void setup() throws Exception {
         super.setup();
@@ -76,9 +81,9 @@ public class LDAPUserTestCase extends AbstractLDAPTest {
 
         User anil = store.getUser("Anil Saldhana");
         assertNotNull(anil);
-        assertEquals("Anil Saldhana", anil.getFullName());
-        assertEquals("Anil", anil.getFirstName());
-        assertEquals("Saldhana", anil.getLastName());
+        assertEquals(USER_FULL_NAME, anil.getFullName());
+        assertEquals(USER_FIRSTNAME, anil.getFirstName());
+        assertEquals(USER_LASTNAME, anil.getLastName());
 
         // Deal with Anil's attributes
         anil.setAttribute("telephoneNumber", "12345678");
@@ -120,5 +125,38 @@ public class LDAPUserTestCase extends AbstractLDAPTest {
         store.removeUser(anil);
         anil = store.getUser("Anil Saldhana");
         assertNull(anil);
+    }
+
+    /**
+     * <p>
+     * Tests the creation of an {@link User} with populating some basic attributes.
+     * </p>
+     *
+     * @throws Exception
+     */
+    //TODO this method will throw OutOfMemoryError, must to find out what's happening here
+    @Test
+    public void testSimpleUserLdapStore() throws Exception {
+        LDAPIdentityStore ldapIdentityStore = new LDAPIdentityStore();
+
+        ldapIdentityStore.setConfiguration(getConfiguration());
+
+        User user = new LDAPUser();
+
+        user.setFirstName(USER_FIRSTNAME);
+        user.setLastName(USER_LASTNAME);
+
+        user = ldapIdentityStore.createUser(user);
+
+        User anil = ldapIdentityStore.getUser(USER_FULL_NAME);
+        assertNotNull(anil);
+        assertEquals(USER_FULL_NAME, anil.getFullName());
+        assertEquals(USER_FIRSTNAME, anil.getFirstName());
+        assertEquals(USER_LASTNAME, anil.getLastName());
+
+        ldapIdentityStore.removeUser(anil);
+        anil = ldapIdentityStore.getUser(USER_FULL_NAME);
+        assertNull(anil);
+
     }
 }

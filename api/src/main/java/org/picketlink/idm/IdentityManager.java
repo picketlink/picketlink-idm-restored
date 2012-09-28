@@ -51,6 +51,8 @@ public interface IdentityManager {
 
     User createUser(String name);
 
+    User createUser(User user);
+
     void removeUser(User user);
 
     void removeUser(String name);

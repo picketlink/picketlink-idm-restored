@@ -53,6 +53,10 @@ public class DefaultIdentityManager implements IdentityManager {
     public DefaultIdentityManager() {
     }
 
+    public DefaultIdentityManager(IdentityStore theStore){
+        this.store = theStore;
+    }
+
     public void setIdentityStore(IdentityStore theStore) {
         this.store = theStore;
     }
@@ -61,6 +65,12 @@ public class DefaultIdentityManager implements IdentityManager {
     public User createUser(String name) {
         ensureStoreExists();
         return store.createUser(name);
+    }
+
+    @Override
+    public User createUser(User user) {
+        ensureStoreExists();
+        return store.createUser(user);
     }
 
     @Override
