@@ -130,4 +130,6 @@ public interface IdentityManager {
     void setEnabled(IdentityType identityType, boolean enabled);
 
     void setExpirationDate(IdentityType identityType, Date expirationDate);
+
+    IdentityType lookupIdentityByKey(String key);
 }
