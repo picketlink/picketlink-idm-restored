@@ -23,6 +23,7 @@ package org.picketlink.test.idm.internal.ldap;
 
 import static junit.framework.Assert.assertEquals;
 import static junit.framework.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
 
 import java.util.List;
 
@@ -71,6 +72,10 @@ public class LDAPGroupQueryTestCase extends AbstractLDAPIdentityManagerTestCase 
         query.setName(this.group.getName());
 
         assertQueryResult(query);
+        
+        query.setName("Invalid");
+        
+        assertTrue(query.executeQuery().isEmpty());
     }
 
     /**
@@ -87,6 +92,10 @@ public class LDAPGroupQueryTestCase extends AbstractLDAPIdentityManagerTestCase 
         query.setId(this.group.getId());
 
         assertQueryResult(query);
+        
+        query.setId("121");
+        
+        assertTrue(query.executeQuery().isEmpty());
     }
 
     /**
@@ -103,6 +112,10 @@ public class LDAPGroupQueryTestCase extends AbstractLDAPIdentityManagerTestCase 
         query.setRole("Echo");
 
         assertQueryResult(query);
+        
+        query.setRole("TheDuke");
+        
+        assertTrue(query.executeQuery().isEmpty());
     }
 
     /**
@@ -120,6 +133,10 @@ public class LDAPGroupQueryTestCase extends AbstractLDAPIdentityManagerTestCase 
         query.setRelatedUser(this.user);
 
         assertQueryResult(query);
+        
+        query.setRelatedUser("guest");
+        
+        assertTrue(query.executeQuery().isEmpty());
     }
 
     /**
@@ -137,6 +154,10 @@ public class LDAPGroupQueryTestCase extends AbstractLDAPIdentityManagerTestCase 
         query.setParentGroup(this.parentGroup);
 
         assertQueryResult(query);
+        
+        query.setParentGroup("Lonely Group");
+        
+        assertTrue(query.executeQuery().isEmpty());
     }
 
     /**

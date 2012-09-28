@@ -23,10 +23,12 @@ package org.picketlink.test.idm.internal.jpa;
 
 import static junit.framework.Assert.assertEquals;
 import static junit.framework.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
 
 import java.util.List;
 
-import org.picketlink.idm.internal.jpa.DefaultMembershipQuery;
+import org.junit.Before;
+import org.junit.Test;
 import org.picketlink.idm.model.Group;
 import org.picketlink.idm.model.Membership;
 import org.picketlink.idm.model.Role;
@@ -34,17 +36,15 @@ import org.picketlink.idm.model.User;
 import org.picketlink.idm.query.GroupQuery;
 import org.picketlink.idm.query.MembershipQuery;
 import org.picketlink.idm.spi.IdentityStore;
-import org.junit.Before;
-import org.junit.Test;
 
 /**
  * <p>
- * Tests the query support for {@link Group} instances.
+ * Tests the query support for {@link Membership} instances.
  * </p>
  *
  * @author <a href="mailto:psilva@redhat.com">Pedro Silva</a>
  */
-public class JPAMembershipQueryTestCase extends AbstractJPAIdentityStoreTestCase {
+public class JPAMembershipQueryTestCase extends AbstractJPAIdentityManagerTestCase {
 
     private static final String USER_NAME = "theuser";
     private static final String GROUP_NAME = "Administrators";
@@ -80,6 +80,10 @@ public class JPAMembershipQueryTestCase extends AbstractJPAIdentityStoreTestCase
         query.setGroup(this.group);
 
         assertQueryResult(query);
+        
+        query.setGroup("67676");
+        
+        assertTrue(query.executeQuery().isEmpty());
     }
 
     /**
@@ -96,6 +100,10 @@ public class JPAMembershipQueryTestCase extends AbstractJPAIdentityStoreTestCase
         query.setRole(this.role);
 
         assertQueryResult(query);
+        
+        query.setRole("12121");
+        
+        assertTrue(query.executeQuery().isEmpty());
     }
 
     /**
@@ -112,6 +120,10 @@ public class JPAMembershipQueryTestCase extends AbstractJPAIdentityStoreTestCase
         query.setUser(this.user);
 
         assertQueryResult(query);
+        
+        query.setUser("12121");
+        
+        assertTrue(query.executeQuery().isEmpty());
     }
 
     /**
@@ -127,6 +139,7 @@ public class JPAMembershipQueryTestCase extends AbstractJPAIdentityStoreTestCase
         this.user = identityStore.getUser(USER_NAME);
         this.membership = identityStore.getMembership(this.role, this.user, this.group);
 
+        // if memberships are already loaded then do nothing
         if (this.membership != null) {
             return;
         }
@@ -156,8 +169,8 @@ public class JPAMembershipQueryTestCase extends AbstractJPAIdentityStoreTestCase
         assertEquals(this.user.getId(), result.get(0).getUser().getId());
     }
 
-    private DefaultMembershipQuery createMembershipQuery() {
-        return new DefaultMembershipQuery(createIdentityStore());
+    private MembershipQuery createMembershipQuery() {
+        return getIdentityManager().createMembershipQuery();
     }
 
 }

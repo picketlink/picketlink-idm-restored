@@ -25,11 +25,11 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 
+import org.junit.Test;
+import org.picketlink.idm.IdentityManager;
 import org.picketlink.idm.internal.JPAIdentityStore;
 import org.picketlink.idm.model.IdentityType;
 import org.picketlink.idm.model.Role;
-import org.picketlink.idm.spi.IdentityStore;
-import org.junit.Test;
 
 /**
  * <p>
@@ -51,9 +51,9 @@ public class JPARoleTestCase extends AbstractJPAIdentityTypeTestCase {
      */
     @Test
     public void testRoleStore() throws Exception {
-        IdentityStore identityStore = createIdentityStore();
+        IdentityManager identityManager = getIdentityManager();
 
-        Role role = identityStore.createRole(ROLE_NAME);
+        Role role = identityManager.createRole(ROLE_NAME);
 
         assertNotNull(role);
         assertNotNull(role.getKey());
@@ -61,7 +61,7 @@ public class JPARoleTestCase extends AbstractJPAIdentityTypeTestCase {
 
         testAddAttributes();
 
-        testGetGroup();
+        testGetRole();
 
         testRemoveRole();
     }
@@ -73,10 +73,10 @@ public class JPARoleTestCase extends AbstractJPAIdentityTypeTestCase {
      *
      * @throws Exception
      */
-    public void testGetGroup() throws Exception {
-        IdentityStore identityStore = createIdentityStore();
+    public void testGetRole() throws Exception {
+        IdentityManager identityManager = getIdentityManager();
 
-        Role group = identityStore.getRole(ROLE_NAME);
+        Role group = identityManager.getRole(ROLE_NAME);
 
         assertNotNull(group);
         assertNotNull(group.getKey());
@@ -93,22 +93,22 @@ public class JPARoleTestCase extends AbstractJPAIdentityTypeTestCase {
      * @throws Exception
      */
     public void testRemoveRole() throws Exception {
-        IdentityStore identityStore = createIdentityStore();
+        IdentityManager identityManager = getIdentityManager();
 
-        Role role = identityStore.getRole(ROLE_NAME);
+        Role role = identityManager.getRole(ROLE_NAME);
 
         assertNotNull(role);
 
-        identityStore.removeRole(role);
+        identityManager.removeRole(role);
 
-        role = identityStore.getRole(ROLE_NAME);
+        role = identityManager.getRole(ROLE_NAME);
 
         assertNull(role);
     }
 
     @Override
-    protected IdentityType getIdentityTypeFromDatabase(IdentityStore identityStore) {
-        return identityStore.getRole(ROLE_NAME);
+    protected IdentityType getIdentityTypeFromDatabase(IdentityManager identityManager) {
+        return identityManager.getRole(ROLE_NAME);
     }
 
 }

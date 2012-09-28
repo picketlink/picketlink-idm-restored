@@ -26,38 +26,41 @@ import javax.persistence.EntityManager;
 import javax.persistence.EntityManagerFactory;
 import javax.persistence.Persistence;
 
-import org.picketlink.idm.internal.JPAIdentityStore;
-import org.picketlink.idm.internal.jpa.JPATemplate;
-import org.picketlink.idm.spi.IdentityStore;
 import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.Before;
 import org.junit.BeforeClass;
+import org.picketlink.idm.IdentityManager;
+import org.picketlink.idm.internal.DefaultIdentityManager;
+import org.picketlink.idm.internal.JPAIdentityStore;
+import org.picketlink.idm.internal.jpa.JPATemplate;
+import org.picketlink.idm.spi.IdentityStore;
 
 /**
  * <p>
  * Base class for testing the {@link JPAIdentityStore}.
  * </p>
  * <p>
- * This class creates a shared {@link EntityManagerFactory} and database using the <code>onBeforeTests</code> static method,
- * which is annotated with {@link BeforeClass}. For each test method an {@link EntityManager} instance is created by the method
- * <code>onSetupTest</code>.
+ * This class creates a shared {@link EntityManagerFactory} and database instance. For each test method an {@link EntityManager}
+ * instance is created.
  * </p>
- *
+ * 
  * @author <a href="mailto:psilva@redhat.com">Pedro Silva</a>
- *
+ * 
  */
-public abstract class AbstractJPAIdentityStoreTestCase {
+public abstract class AbstractJPAIdentityManagerTestCase {
 
     protected static EntityManagerFactory emf;
 
     protected EntityManager entityManager;
 
+    private DefaultIdentityManager identityManager;
+
     /**
      * <p>
      * Creates a shared {@link EntityManagerFactory} and database instances
      * </p>
-     *
+     * 
      * @throws Exception
      */
     @BeforeClass
@@ -69,7 +72,7 @@ public abstract class AbstractJPAIdentityStoreTestCase {
      * <p>
      * Closes the shared {@link EntityManagerFactory} instance.
      * </p>
-     *
+     * 
      * @throws Exception
      */
     @AfterClass
@@ -81,7 +84,7 @@ public abstract class AbstractJPAIdentityStoreTestCase {
      * <p>
      * Creates an {@link EntityManager} instance for each test and begins a transaction
      * </p>
-     *
+     * 
      * @throws Exception
      */
     @Before
@@ -94,7 +97,7 @@ public abstract class AbstractJPAIdentityStoreTestCase {
      * <p>
      * Flush/Closes the {@link EntityManager} and commit the current transaction.
      * </p>
-     *
+     * 
      * @throws Exception
      */
     @After
@@ -104,11 +107,20 @@ public abstract class AbstractJPAIdentityStoreTestCase {
         this.entityManager.close();
     }
 
+    protected IdentityManager getIdentityManager() {
+        if (this.identityManager == null) {
+            this.identityManager = new DefaultIdentityManager();
+            this.identityManager.setIdentityStore(createIdentityStore());
+        }
+
+        return this.identityManager;
+    }
+
     /**
      * <p>
      * Creates a new {@link JPAIdentityStore}
      * </p>
-     *
+     * 
      * @return
      */
     protected IdentityStore createIdentityStore() {

@@ -25,17 +25,15 @@ import static junit.framework.Assert.assertEquals;
 import static junit.framework.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 
-import org.picketlink.idm.internal.JPAIdentityStore;
+import org.junit.Test;
+import org.picketlink.idm.IdentityManager;
 import org.picketlink.idm.internal.jpa.DatabaseUser;
 import org.picketlink.idm.model.IdentityType;
-import org.picketlink.idm.model.SimpleUser;
 import org.picketlink.idm.model.User;
-import org.picketlink.idm.spi.IdentityStore;
-import org.junit.Test;
 
 /**
  * <p>
- * Tests the creation of users using the {@link JPAIdentityStore}.
+ * Tests the creation of users using the {@link JPAIdentityManager}.
  * </p>
  *
  * @author <a href="mailto:psilva@redhat.com">Pedro Silva</a>
@@ -57,9 +55,9 @@ public class JPAUserTestCase extends AbstractJPAIdentityTypeTestCase {
      */
     @Test
     public void testUserStore() throws Exception {
-        IdentityStore identityStore = createIdentityStore();
+        IdentityManager identityManager = getIdentityManager();
 
-        User user = identityStore.createUser(USER_USERNAME);
+        User user = identityManager.createUser(USER_USERNAME);
 
         user.setEmail(USER_EMAIL);
         user.setFirstName(USER_FIRST_NAME);
@@ -73,7 +71,7 @@ public class JPAUserTestCase extends AbstractJPAIdentityTypeTestCase {
 
         testRemoveUser();
     }
-
+    
     /**
      * <p>
      * Tests the creation of an {@link User} with populating some basic attributes.
@@ -83,7 +81,7 @@ public class JPAUserTestCase extends AbstractJPAIdentityTypeTestCase {
      */
     @Test
     public void testSimpleUserStore() throws Exception {
-        IdentityStore identityStore = createIdentityStore();
+        IdentityManager identityManager = getIdentityManager();
 
         User user = new DatabaseUser(USER_USERNAME);
 
@@ -91,7 +89,7 @@ public class JPAUserTestCase extends AbstractJPAIdentityTypeTestCase {
         user.setFirstName(USER_FIRST_NAME);
         user.setLastName(USER_LAST_NAME);
 
-        user = identityStore.createUser(user);
+        user = identityManager.createUser(user);
 
         assertUserBasicInformation(user);
 
@@ -110,9 +108,9 @@ public class JPAUserTestCase extends AbstractJPAIdentityTypeTestCase {
      * @throws Exception
      */
     public void testGetUser() throws Exception {
-        IdentityStore identityStore = createIdentityStore();
+        IdentityManager identityManager = getIdentityManager();
 
-        User user = identityStore.getUser(USER_USERNAME);
+        User user = identityManager.getUser(USER_USERNAME);
 
         assertUserBasicInformation(user);
 
@@ -127,15 +125,15 @@ public class JPAUserTestCase extends AbstractJPAIdentityTypeTestCase {
      * @throws Exception
      */
     public void testRemoveUser() throws Exception {
-        IdentityStore identityStore = createIdentityStore();
+        IdentityManager identityManager = getIdentityManager();
 
-        User user = identityStore.getUser(USER_USERNAME);
+        User user = identityManager.getUser(USER_USERNAME);
 
         assertNotNull(user);
 
-        identityStore.removeUser(user);
+        identityManager.removeUser(user);
 
-        user = identityStore.getUser(USER_USERNAME);
+        user = identityManager.getUser(USER_USERNAME);
 
         assertNull(user);
     }
@@ -158,8 +156,8 @@ public class JPAUserTestCase extends AbstractJPAIdentityTypeTestCase {
     }
 
     @Override
-    protected IdentityType getIdentityTypeFromDatabase(IdentityStore identityStore) {
-        return identityStore.getUser(USER_USERNAME);
+    protected IdentityType getIdentityTypeFromDatabase(IdentityManager identityManager) {
+        return identityManager.getUser(USER_USERNAME);
     }
 
 }

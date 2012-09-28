@@ -19,7 +19,7 @@
  * Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
  * 02110-1301 USA, or see the FSF site: http://www.fsf.org.
  */
-package org.picketlink.test.idm.internal;
+package org.picketlink.test.idm.internal.ldap;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
@@ -31,15 +31,15 @@ import java.security.cert.CertificateFactory;
 import java.security.cert.X509Certificate;
 import java.util.Map;
 
+import org.junit.Before;
+import org.junit.Test;
+import org.picketbox.test.ldap.AbstractLDAPTest;
 import org.picketlink.idm.internal.LDAPIdentityStore;
 import org.picketlink.idm.internal.config.LDAPConfiguration;
 import org.picketlink.idm.internal.config.LDAPConfigurationBuilder;
 import org.picketlink.idm.internal.ldap.LDAPUser;
 import org.picketlink.idm.internal.util.Base64;
 import org.picketlink.idm.model.User;
-import org.junit.Before;
-import org.junit.Test;
-import org.picketbox.test.ldap.AbstractLDAPTest;
 
 /**
  * Unit test the {@link LDAPUser} construct
@@ -49,6 +49,7 @@ import org.picketbox.test.ldap.AbstractLDAPTest;
  */
 public class LDAPUserTestCase extends AbstractLDAPTest {
 
+    private static final String USER_DN_SUFFIX = "ou=People,dc=jboss,dc=org";
     private static final String USER_FULL_NAME = "Anil Saldhana";
     private static final String USER_FIRSTNAME = "Anil";
     private static final String USER_LASTNAME = "Saldhana";
@@ -64,7 +65,7 @@ public class LDAPUserTestCase extends AbstractLDAPTest {
         LDAPConfiguration config = (LDAPConfiguration) builder.build();
 
         config.setBindDN(adminDN).setBindCredential(adminPW).setLdapURL("ldap://localhost:10389");
-        config.setUserDNSuffix("ou=People,dc=jboss,dc=org").setRoleDNSuffix("ou=Roles,dc=jboss,dc=org");
+        config.setUserDNSuffix(USER_DN_SUFFIX).setRoleDNSuffix("ou=Roles,dc=jboss,dc=org");
         config.setGroupDNSuffix("ou=Groups,dc=jboss,dc=org");
         return config;
     }
@@ -141,22 +142,42 @@ public class LDAPUserTestCase extends AbstractLDAPTest {
 
         ldapIdentityStore.setConfiguration(getConfiguration());
 
-        User user = new LDAPUser();
+        LDAPUser user = new LDAPUser();
+        
+        user.setId("abstractj");
+        user.setFirstName("Bruno");
+        user.setLastName("Oliveira");
 
-        user.setFirstName(USER_FIRSTNAME);
-        user.setLastName(USER_LASTNAME);
+        user = (LDAPUser) ldapIdentityStore.createUser(user);
 
-        user = ldapIdentityStore.createUser(user);
-
-        User anil = ldapIdentityStore.getUser(USER_FULL_NAME);
+        User anil = ldapIdentityStore.getUser("abstractj");
         assertNotNull(anil);
-        assertEquals(USER_FULL_NAME, anil.getFullName());
-        assertEquals(USER_FIRSTNAME, anil.getFirstName());
-        assertEquals(USER_LASTNAME, anil.getLastName());
+        assertEquals("Bruno Oliveira", anil.getFullName());
+        assertEquals("Bruno", anil.getFirstName());
+        assertEquals("Oliveira", anil.getLastName());
 
         ldapIdentityStore.removeUser(anil);
-        anil = ldapIdentityStore.getUser(USER_FULL_NAME);
+        anil = ldapIdentityStore.getUser("abstractj");
         assertNull(anil);
 
+    }
+    
+    /**
+     * <p>Tests if a exception is throw when the {@link LDAPUser} is created without an identifier.</p>
+     * 
+     * @throws Exception
+     */
+    @Test (expected=RuntimeException.class)
+    public void testInvalidNewLDAPUserInstance() throws Exception {
+        LDAPIdentityStore ldapIdentityStore = new LDAPIdentityStore();
+
+        ldapIdentityStore.setConfiguration(getConfiguration());
+
+        LDAPUser user = new LDAPUser();
+        
+        user.setFirstName("Bruno");
+        user.setLastName("Oliveira");
+
+        user = (LDAPUser) ldapIdentityStore.createUser(user);
     }
 }

@@ -39,7 +39,7 @@ import org.junit.Test;
  *
  * @author <a href="mailto:psilva@redhat.com">Pedro Silva</a>
  */
-public class JPAMembershipTestCase extends AbstractJPAIdentityStoreTestCase {
+public class JPAMembershipTestCase extends AbstractJPAIdentityManagerTestCase {
 
     /**
      * <p>

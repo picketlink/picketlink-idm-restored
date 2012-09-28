@@ -18,6 +18,15 @@ cn: Java Duke
 sn: Duke
 userPassword: theduke
 
+dn: uid=guest,ou=People,dc=jboss,dc=org
+objectclass: top
+objectclass: uidObject
+objectclass: person
+uid: guest
+cn: Guest User
+sn: User
+userPassword: guest
+
 dn: ou=Roles,dc=jboss,dc=org
 objectclass: top
 objectclass: organizationalUnit
@@ -54,5 +63,13 @@ dn: cn=Test Parent Group,ou=Groups,dc=jboss,dc=org
 objectClass: top
 objectClass: groupOfNames
 cn: Test Parent Group
-description: the Test Parent Group group
+description: the Test Parent Group
 member: cn=Test Group,ou=Groups,dc=jboss,dc=org
+
+dn: cn=Lonely Group,ou=Groups,dc=jboss,dc=org
+objectClass: top
+objectClass: groupOfNames
+cn: Lonely Group
+description: the Lonely Group
+member: 
+
