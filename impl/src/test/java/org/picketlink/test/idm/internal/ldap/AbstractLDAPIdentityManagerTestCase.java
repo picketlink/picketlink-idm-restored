@@ -19,71 +19,53 @@
  * Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
  * 02110-1301 USA, or see the FSF site: http://www.fsf.org.
  */
+
 package org.picketlink.test.idm.internal.ldap;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-
-import java.util.Map;
-
-import org.junit.Test;
+import org.junit.Before;
+import org.picketbox.test.ldap.AbstractLDAPTest;
+import org.picketlink.idm.IdentityManager;
 import org.picketlink.idm.internal.DefaultIdentityManager;
 import org.picketlink.idm.internal.LDAPIdentityStore;
 import org.picketlink.idm.internal.config.LDAPConfiguration;
 import org.picketlink.idm.internal.config.LDAPConfigurationBuilder;
-import org.picketlink.idm.internal.ldap.LDAPUser;
-import org.picketlink.idm.model.User;
+import org.picketlink.idm.spi.IdentityStore;
 import org.picketlink.idm.spi.IdentityStoreConfigurationBuilder;
 
 /**
- * Unit test the ability to add custom attributes to {@link LDAPUser}
+ * <p>Base class for {@link IdentityManager} test cases using the {@link LDAPIdentityStore}.</p>
+ * 
+ * @author <a href="mailto:psilva@redhat.com">Pedro Silva</a>
  *
- * @author anil saldhana
- * @since Sep 7, 2012
  */
-public class LDAPCustomAttributesTestCase extends AbstractLDAPIdentityManagerTestCase {
-
+public abstract class AbstractLDAPIdentityManagerTestCase extends AbstractLDAPTest {
+    
+    private IdentityManager identityManager;
+    
+    @Before
     public void setup() throws Exception {
         super.setup();
         importLDIF("ldap/users.ldif");
     }
+    
+    protected IdentityManager getIdentityManager() {
+        if (this.identityManager == null) {
+            DefaultIdentityManager defaultIdentityManager = new DefaultIdentityManager();
 
-    @Test
-    public void testUserAttributes() throws Exception {
+            defaultIdentityManager.setIdentityStore(createIdentityStore());
+
+            this.identityManager = defaultIdentityManager;
+        }
+
+        return this.identityManager;
+    }
+
+    private IdentityStore createIdentityStore() {
         LDAPIdentityStore store = new LDAPIdentityStore();
+
         store.setConfiguration(getConfiguration());
 
-        DefaultIdentityManager im = new DefaultIdentityManager();
-        im.setIdentityStore(store); // TODO: wiring needs a second look
-
-        // Let us create an user
-        User user = im.createUser("Anil Saldhana");
-        assertNotNull(user);
-
-        User anil = im.getUser("Anil Saldhana");
-        assertNotNull(anil);
-        assertEquals("Anil Saldhana", anil.getFullName());
-        assertEquals("Anil", anil.getFirstName());
-        assertEquals("Saldhana", anil.getLastName());
-
-        // Deal with Anil's attributes
-        store.setAttribute(anil, "QuestionTotal", new String[] { "2" });
-        store.setAttribute(anil, "Question1", new String[] { "What is favorite toy?" });
-        store.setAttribute(anil, "Question1Answer", new String[] { "Gum" });
-
-        store.setAttribute(anil, "Question2", new String[] { "What is favorite word?" });
-        store.setAttribute(anil, "Question2Answer", new String[] { "Hi" });
-
-        // let us retrieve the attributes from ldap store and see if they are the same
-        anil = im.getUser("Anil Saldhana");
-        Map<String, String[]> attributes = anil.getAttributes();
-        assertNotNull(attributes);
-
-        assertEquals("2", attributes.get("QuestionTotal")[0]);
-        assertEquals("What is favorite toy?", attributes.get("Question1")[0]);
-        assertEquals("Gum", attributes.get("Question1Answer")[0]);
-        assertEquals("What is favorite word?", attributes.get("Question2")[0]);
-        assertEquals("Hi", attributes.get("Question2Answer")[0]);
+        return store;
     }
 
     private LDAPConfiguration getConfiguration() {
@@ -95,5 +77,5 @@ public class LDAPCustomAttributesTestCase extends AbstractLDAPIdentityManagerTes
         config.setGroupDNSuffix("ou=Groups,dc=jboss,dc=org");
         return config;
     }
-
+    
 }

@@ -43,6 +43,8 @@ public interface GroupQuery {
 
     List<Group> executeQuery(GroupQuery query);
 
+    List<Group> executeQuery();
+
     // Conditions
 
     GroupQuery setName(String name);

@@ -57,11 +57,7 @@ public class DefaultUserQuery implements UserQuery {
     private boolean enabled = true;
     private Range range;
 
-    public IdentityStore getStore() {
-        return store;
-    }
-
-    public void setStore(IdentityStore store) {
+    public DefaultUserQuery(IdentityStore store) {
         this.store = store;
     }
 

@@ -19,7 +19,7 @@
  * Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
  * 02110-1301 USA, or see the FSF site: http://www.fsf.org.
  */
-package org.picketlink.test.idm.internal.jpa;
+package org.picketlink.test.idm.internal.ldap;
 
 import static junit.framework.Assert.assertEquals;
 import static junit.framework.Assert.assertFalse;
@@ -28,12 +28,9 @@ import java.util.List;
 
 import org.junit.Before;
 import org.junit.Test;
-import org.picketlink.idm.internal.jpa.DefaultGroupQuery;
 import org.picketlink.idm.model.Group;
-import org.picketlink.idm.model.Role;
 import org.picketlink.idm.model.User;
 import org.picketlink.idm.query.GroupQuery;
-import org.picketlink.idm.spi.IdentityStore;
 
 /**
  * <p>
@@ -42,25 +39,22 @@ import org.picketlink.idm.spi.IdentityStore;
  *
  * @author <a href="mailto:psilva@redhat.com">Pedro Silva</a>
  */
-public class JPAGroupQueryTestCase extends AbstractJPAIdentityStoreTestCase {
+public class LDAPGroupQueryTestCase extends AbstractLDAPIdentityManagerTestCase {
 
-    private static final String GROUP_PARENT_NAME = "parentGroup";
-    private static final String USER_NAME = "theuser";
-    private static final String GROUP_NAME = "Administrators";
+    private static final String GROUP_PARENT_NAME = "Test Parent Group";
+    private static final String USER_NAME = "jduke";
+    private static final String GROUP_NAME = "Test Group";
+
     private Group group;
     private User user;
     private Group parentGroup;
 
-    /*
-     * (non-Javadoc)
-     *
-     * @see org.picketlink.test.idm.internal.jpa.AbstractJPAIdentityStoreTestCase#onSetupTest()
-     */
-    @Override
     @Before
-    public void onSetupTest() throws Exception {
-        super.onSetupTest();
-        loadGroups();
+    public void setup() throws Exception {
+        super.setup();
+        this.group = getIdentityManager().getGroup(GROUP_NAME);
+        this.user = getIdentityManager().getUser(USER_NAME);
+        this.parentGroup = getIdentityManager().getGroup(GROUP_PARENT_NAME);
     }
 
     /**
@@ -72,7 +66,7 @@ public class JPAGroupQueryTestCase extends AbstractJPAIdentityStoreTestCase {
      */
     @Test
     public void testfindByName() throws Exception {
-        GroupQuery query = new DefaultGroupQuery(createIdentityStore());
+        GroupQuery query = createQuery();
 
         query.setName(this.group.getName());
 
@@ -88,7 +82,7 @@ public class JPAGroupQueryTestCase extends AbstractJPAIdentityStoreTestCase {
      */
     @Test
     public void testfindById() throws Exception {
-        GroupQuery query = new DefaultGroupQuery(createIdentityStore());
+        GroupQuery query = createQuery();
 
         query.setId(this.group.getId());
 
@@ -104,9 +98,9 @@ public class JPAGroupQueryTestCase extends AbstractJPAIdentityStoreTestCase {
      */
     @Test
     public void testfindByRole() throws Exception {
-        GroupQuery query = new DefaultGroupQuery(createIdentityStore());
+        GroupQuery query = createQuery();
 
-        query.setRole("admin" + 1);
+        query.setRole("Echo");
 
         assertQueryResult(query);
     }
@@ -120,7 +114,7 @@ public class JPAGroupQueryTestCase extends AbstractJPAIdentityStoreTestCase {
      */
     @Test
     public void testfindByUser() throws Exception {
-        GroupQuery query = new DefaultGroupQuery(createIdentityStore());
+        GroupQuery query = createQuery();
 
         query.setId(this.group.getId());
         query.setRelatedUser(this.user);
@@ -137,71 +131,12 @@ public class JPAGroupQueryTestCase extends AbstractJPAIdentityStoreTestCase {
      */
     @Test
     public void testfindByParentGroup() throws Exception {
-        GroupQuery query = new DefaultGroupQuery(createIdentityStore());
+        GroupQuery query = createQuery();
 
         query.setId(this.group.getId());
         query.setParentGroup(this.parentGroup);
 
         assertQueryResult(query);
-    }
-
-    /**
-     * <p>
-     * Tests a simple query using the group's attributes.
-     * </p>
-     *
-     * @throws Exception
-     */
-    @Test
-    public void testfindByAttributes() throws Exception {
-        GroupQuery query = new DefaultGroupQuery(createIdentityStore());
-
-        query.setId(this.group.getId());
-        query.addAttributeFilter("attribute1", new String[] { "attributeValue1", "attributeValue12", "attributeValue123" });
-        query.addAttributeFilter("attribute2", new String[] { "attributeValue2" });
-
-        assertQueryResult(query);
-    }
-
-    /**
-     * <p>
-     * Create and persist a {@link Group} instance for testing.
-     * </p>
-     */
-    private void loadGroups() {
-        IdentityStore identityStore = createIdentityStore();
-
-        this.group = identityStore.getGroup(GROUP_NAME + 1);
-        this.user = identityStore.getUser(USER_NAME);
-        this.parentGroup = identityStore.getGroup(GROUP_PARENT_NAME);
-
-        // if groups are already loaded then do nothing
-        if (this.group != null) {
-            return;
-        }
-
-        this.user = identityStore.createUser(USER_NAME);
-        this.parentGroup = identityStore.createGroup(GROUP_PARENT_NAME, null);
-
-        for (int i = 0; i < 10; i++) {
-            int index = i + 1;
-            Group currentGroup = identityStore.createGroup(GROUP_NAME + index, parentGroup);
-
-            // store the instance used for testing
-            if (this.group == null) {
-                this.group = currentGroup;
-            }
-
-            Role role = identityStore.createRole("admin" + index);
-
-            identityStore.createMembership(role, user, currentGroup);
-
-            currentGroup.setAttribute("attribute1", "attributeValue1");
-            currentGroup.setAttribute("attribute1", "attributeValue12");
-            currentGroup.setAttribute("attribute1", "attributeValue123");
-
-            currentGroup.setAttribute("attribute2", "attributeValue2");
-        }
     }
 
     /**
@@ -212,12 +147,13 @@ public class JPAGroupQueryTestCase extends AbstractJPAIdentityStoreTestCase {
      * @param query
      */
     private void assertQueryResult(GroupQuery query) {
-        IdentityStore identityStore = createIdentityStore();
-
-        List<Group> result = identityStore.executeQuery(query, null);
+        List<Group> result = query.executeQuery();
 
         assertFalse(result.isEmpty());
         assertEquals(this.group.getId(), result.get(0).getId());
     }
 
+    private GroupQuery createQuery() {
+        return getIdentityManager().createGroupQuery();
+    }
 }

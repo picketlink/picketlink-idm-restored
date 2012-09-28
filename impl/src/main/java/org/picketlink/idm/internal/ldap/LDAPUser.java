@@ -66,6 +66,15 @@ public class LDAPUser extends DirContextAdaptor implements User {
         attributes.put(oc);
     }
 
+    public LDAPUser(String userId, String userDNSuffix, ManagedAttributeLookup lookup) {
+        this();
+        setLookup(lookup);
+        setId(userId);
+        setUserDNSuffix(userDNSuffix);
+        setFullName(userId);
+    }
+
+
     public ManagedAttributeLookup getLookup() {
         return lookup;
     }
@@ -183,7 +192,7 @@ public class LDAPUser extends DirContextAdaptor implements User {
         } catch (NamingException e) {
             throw new RuntimeException(e);
         }
-        return UID + EQUAL + userid + COMMA + userDNSuffix;
+        return UID + EQUAL + getId() + COMMA + userDNSuffix;
     }
 
     public void setId(String id) {
@@ -228,11 +237,20 @@ public class LDAPUser extends DirContextAdaptor implements User {
     public void setFirstName(String firstName) {
         this.firstName = firstName;
         Attribute theAttribute = attributes.get(GIVENNAME);
+
         if (theAttribute == null) {
             attributes.put(GIVENNAME, firstName);
         } else {
-            theAttribute.set(0, firstName);
+            replaceAttribute(GIVENNAME, firstName);
         }
+
+        Attribute cnAttribute = attributes.get(CN);
+
+        if (cnAttribute != null) {
+            replaceAttribute(CN, firstName);
+        }
+
+        attributes.put(CN, firstName);
     }
 
     @Override
@@ -254,11 +272,27 @@ public class LDAPUser extends DirContextAdaptor implements User {
     public void setLastName(String lastName) {
         this.lastName = lastName;
         Attribute theAttribute = attributes.get(SN);
+
         if (theAttribute == null) {
             attributes.put(SN, lastName);
         } else {
             theAttribute.set(0, lastName);
         }
+
+        Attribute cnAttribute = attributes.get(CN);
+
+        if (cnAttribute == null) {
+            cnAttribute = new BasicAttribute(CN, lastName);
+            attributes.put(cnAttribute);
+        } else {
+            try {
+                replaceAttribute(SN, lastName);
+                replaceAttribute(CN, cnAttribute.get().toString() + " " + lastName);
+            } catch (NamingException e) {
+                throw new RuntimeException("Could not set user's last name.", e);
+            }
+        }
+
     }
 
     @Override
@@ -278,12 +312,17 @@ public class LDAPUser extends DirContextAdaptor implements User {
 
     public void setFullName(String fullName) {
         this.fullName = fullName;
+
         Attribute theAttribute = attributes.get(CN);
+
         if (theAttribute == null) {
             attributes.put(CN, fullName);
         } else {
             theAttribute.set(0, fullName);
         }
+
+        setFirstName(getFirstName(fullName));
+        setLastName(getLastName(fullName));
     }
 
     @Override
@@ -306,9 +345,32 @@ public class LDAPUser extends DirContextAdaptor implements User {
         this.email = email;
         Attribute theAttribute = attributes.get(EMAIL);
         if (theAttribute == null) {
-            attributes.put(EMAIL, email);
+            setAttribute(EMAIL, email);
         } else {
-            theAttribute.set(0, email);
+            replaceAttribute(EMAIL, email);
         }
+    }
+
+    private String getFirstName(String name) {
+        String[] tokens = name.split("\\ ");
+        int length = tokens.length;
+        String firstName = null;
+
+        if (length > 0) {
+            firstName = tokens[0];
+        }
+        return firstName;
+    }
+
+    private String getLastName(String name) {
+        String lastName = null;
+
+        String[] tokens = name.split("\\ ");
+
+        if (tokens.length > 0) {
+            lastName = tokens[tokens.length - 1];
+        }
+
+        return lastName;
     }
 }

@@ -24,7 +24,6 @@ package org.picketlink.idm.internal;
 import static org.picketlink.idm.internal.ldap.LDAPConstants.CN;
 import static org.picketlink.idm.internal.ldap.LDAPConstants.MEMBER;
 import static org.picketlink.idm.internal.ldap.LDAPConstants.OBJECT_CLASS;
-import static org.picketlink.idm.internal.ldap.LDAPConstants.UID;
 
 import java.security.cert.X509Certificate;
 import java.util.ArrayList;
@@ -49,6 +48,7 @@ import javax.naming.ldap.InitialLdapContext;
 
 import org.picketlink.idm.internal.config.LDAPConfiguration;
 import org.picketlink.idm.internal.ldap.LDAPChangeNotificationHandler;
+import org.picketlink.idm.internal.ldap.LDAPConstants;
 import org.picketlink.idm.internal.ldap.LDAPGroup;
 import org.picketlink.idm.internal.ldap.LDAPObjectChangedNotification;
 import org.picketlink.idm.internal.ldap.LDAPObjectChangedNotification.NType;
@@ -101,56 +101,55 @@ public class LDAPIdentityStore implements IdentityStore, LDAPChangeNotificationH
         constructContext();
     }
 
+    /* (non-Javadoc)
+     * @see org.picketlink.idm.spi.IdentityStore#createUser(java.lang.String)
+     */
     @Override
     public User createUser(String name) {
-        LDAPUser user = new LDAPUser();
+        LDAPUser user = new LDAPUser(name, userDNSuffix, this);
+
         user.setLookup(this);
         user.setLDAPChangeNotificationHandler(this);
 
-        user.setFullName(name);
-        String firstName = getFirstName(name);
-        String lastName = getLastName(name);
-
-        user.setFirstName(firstName);
-        user.setLastName(lastName);
-
-        // TODO: How do we get the userid?
-        String userid = generateUserID(firstName, lastName);
-        user.setId(userid);
-        user.setUserDNSuffix(userDNSuffix);
-
         try {
-            ctx.bind(UID + "=" + userid + COMMA + userDNSuffix, user);
+            ctx.bind(user.getDN(), user);
         } catch (NamingException e) {
             throw new RuntimeException(e);
         }
+
         return user;
     }
 
+    /* (non-Javadoc)
+     * @see org.picketlink.idm.spi.IdentityStore#removeUser(org.picketlink.idm.model.User)
+     */
     @SuppressWarnings("unused")
     @Override
     public void removeUser(User user) {
         try {
             // Look for custom attributes
-            LDAPUser ldapUser = (LDAPUser) getUser(user.getFullName());
+            LDAPUser ldapUser = (LDAPUser) getUser(user.getId());
             String customDN = ldapUser.getCustomAttributes().getDN() + COMMA + ldapUser.getDN();
             try {
                 LDAPUserCustomAttributes lca = (LDAPUserCustomAttributes) ctx.lookup(customDN);
                 ctx.destroySubcontext(customDN);
             } catch (Exception ignore) {
             }
-            ctx.destroySubcontext(UID + "=" + user.getId() + COMMA + userDNSuffix);
+            ctx.destroySubcontext(ldapUser.getDN());
         } catch (NamingException e) {
             throw new RuntimeException(e);
         }
     }
 
+    /* (non-Javadoc)
+     * @see org.picketlink.idm.spi.IdentityStore#getUser(java.lang.String)
+     */
     @Override
     public User getUser(String name) {
         LDAPUser user = null;
         try {
             Attributes matchAttrs = new BasicAttributes(true); // ignore attribute name case
-            matchAttrs.put(new BasicAttribute(CN, name));
+            matchAttrs.put(new BasicAttribute(LDAPConstants.UID, name));
 
             NamingEnumeration<SearchResult> answer = ctx.search(userDNSuffix, matchAttrs);
             while (answer.hasMore()) {
@@ -180,6 +179,9 @@ public class LDAPIdentityStore implements IdentityStore, LDAPChangeNotificationH
         return user;
     }
 
+    /* (non-Javadoc)
+     * @see org.picketlink.idm.spi.IdentityStore#createGroup(java.lang.String, org.picketlink.idm.model.Group)
+     */
     @Override
     public Group createGroup(String name, Group parent) {
         ensureGroupDNExists();
@@ -190,7 +192,7 @@ public class LDAPIdentityStore implements IdentityStore, LDAPChangeNotificationH
         ldapGroup.setGroupDNSuffix(groupDNSuffix);
 
         try {
-            ctx.bind(CN + "=" + name + COMMA + groupDNSuffix, ldapGroup);
+            ctx.bind(ldapGroup.getDN(), ldapGroup);
         } catch (NamingException e) {
             throw new RuntimeException(e);
         }
@@ -202,7 +204,7 @@ public class LDAPIdentityStore implements IdentityStore, LDAPChangeNotificationH
             ldapGroup.setParentGroup(parentGroup);
             parentGroup.addChildGroup(ldapGroup);
             try {
-                ctx.rebind(CN + "=" + parentGroup.getName() + COMMA + groupDNSuffix, parentGroup);
+                ctx.rebind(parentGroup.getDN(), parentGroup);
             } catch (NamingException e) {
                 throw new RuntimeException(e);
             }
@@ -210,15 +212,22 @@ public class LDAPIdentityStore implements IdentityStore, LDAPChangeNotificationH
         return ldapGroup;
     }
 
+    /* (non-Javadoc)
+     * @see org.picketlink.idm.spi.IdentityStore#removeGroup(org.picketlink.idm.model.Group)
+     */
     @Override
     public void removeGroup(Group group) {
         try {
-            ctx.destroySubcontext(CN + "=" + group.getName() + COMMA + groupDNSuffix);
+            LDAPGroup ldapGroup = (LDAPGroup) getGroup(group.getId());
+            ctx.destroySubcontext(ldapGroup.getDN());
         } catch (NamingException e) {
             throw new RuntimeException(e);
         }
     }
 
+    /* (non-Javadoc)
+     * @see org.picketlink.idm.spi.IdentityStore#getGroup(java.lang.String)
+     */
     @Override
     public Group getGroup(String name) {
         LDAPGroup ldapGroup = null;
@@ -234,7 +243,7 @@ public class LDAPIdentityStore implements IdentityStore, LDAPChangeNotificationH
                 ldapGroup.setGroupDNSuffix(groupDNSuffix);
                 ldapGroup.addAllLDAPAttributes(attributes);
                 // Let us work out any parent groups for this group exist
-                Group parentGroup = parentGroup(ldapGroup);
+                Group parentGroup = getParentGroup(ldapGroup);
                 if (parentGroup != null) {
                     ldapGroup.setParentGroup(parentGroup);
                 }
@@ -246,6 +255,9 @@ public class LDAPIdentityStore implements IdentityStore, LDAPChangeNotificationH
         return ldapGroup;
     }
 
+    /* (non-Javadoc)
+     * @see org.picketlink.idm.spi.IdentityStore#createRole(java.lang.String)
+     */
     @Override
     public Role createRole(String name) {
         LDAPRole role = new LDAPRole();
@@ -255,55 +267,84 @@ public class LDAPIdentityStore implements IdentityStore, LDAPChangeNotificationH
         role.setRoleDNSuffix(roleDNSuffix);
 
         try {
-            ctx.bind(CN + "=" + name + COMMA + roleDNSuffix, role);
+            ctx.bind(role.getDN(), role);
         } catch (NamingException e) {
             throw new RuntimeException(e);
         }
         return role;
     }
 
+    /* (non-Javadoc)
+     * @see org.picketlink.idm.spi.IdentityStore#removeRole(org.picketlink.idm.model.Role)
+     */
     @Override
     public void removeRole(Role role) {
         try {
-            ctx.destroySubcontext(CN + "=" + role.getName() + COMMA + roleDNSuffix);
+            LDAPRole ldapRole = (LDAPRole) getRole(role.getName());
+
+            ctx.destroySubcontext(ldapRole.getDN());
         } catch (NamingException e) {
             throw new RuntimeException(e);
         }
     }
 
+    /*
+     * (non-Javadoc)
+     *
+     * @see org.picketlink.idm.spi.IdentityStore#getRole(java.lang.String)
+     */
     @Override
     public Role getRole(String role) {
-        LDAPRole ldapRole = null;
         try {
             Attributes matchAttrs = new BasicAttributes(true); // ignore attribute name case
+
             matchAttrs.put(new BasicAttribute(CN, role));
 
-            NamingEnumeration<SearchResult> answer = ctx.search(roleDNSuffix, matchAttrs);
-            while (answer.hasMore()) {
-                SearchResult sr = answer.next();
-                Attributes attributes = sr.getAttributes();
-                ldapRole = new LDAPRole();
-                ldapRole.setRoleDNSuffix(roleDNSuffix);
-                ldapRole.addAllLDAPAttributes(attributes);
-                ldapRole.setLDAPChangeNotificationHandler(this);
+            NamingEnumeration<SearchResult> searchResult = ctx.search(roleDNSuffix, matchAttrs);
+
+            while (searchResult.hasMore()) {
+                SearchResult result = searchResult.next();
+
+                return new LDAPRole(result.getAttributes(), this.roleDNSuffix);
             }
         } catch (NamingException e) {
             throw new RuntimeException(e);
         }
-        return ldapRole;
+
+        return null;
     }
 
+    /* (non-Javadoc)
+     * @see org.picketlink.idm.spi.IdentityStore#createMembership(org.picketlink.idm.model.Role, org.picketlink.idm.model.User, org.picketlink.idm.model.Group)
+     */
     @Override
     public Membership createMembership(Role role, User user, Group group) {
         final LDAPRole ldapRole = (LDAPRole) getRole(role.getName());
-        final LDAPUser ldapUser = (LDAPUser) getUser(user.getFullName());
+        final LDAPUser ldapUser = (LDAPUser) getUser(user.getId());
         final LDAPGroup ldapGroup = (LDAPGroup) getGroup(group.getName());
 
         ldapRole.addUser(ldapUser);
         ldapGroup.addRole(ldapRole);
+        ldapGroup.addUser(ldapUser);
+
+        try {
+            ctx.modifyAttributes(ldapRole.getDN(), ctx.REPLACE_ATTRIBUTE, ldapRole.getAttributes(MEMBER));
+        } catch (NamingException e) {
+            throw new RuntimeException("Error while modifying members of role [" + ldapRole.getName() + "].", e);
+        }
+
+        try {
+            ctx.modifyAttributes(ldapGroup.getDN(), ctx.REPLACE_ATTRIBUTE, ldapGroup.getAttributes(MEMBER));
+        } catch (NamingException e) {
+            throw new RuntimeException("Error while modifying members of group [" + ldapGroup.getName() + "].", e);
+        }
+
         return new DefaultMembership(ldapUser, ldapRole, ldapGroup);
     }
 
+    /* (non-Javadoc)
+     * @see org.picketlink.idm.spi.IdentityStore#removeMembership(org.picketlink.idm.model.Role, org.picketlink.idm.model.User, org.picketlink.idm.model.Group)
+     */
     @Override
     public void removeMembership(Role role, User user, Group group) {
         final LDAPRole ldapRole = (LDAPRole) getRole(role.getName());
@@ -314,16 +355,21 @@ public class LDAPIdentityStore implements IdentityStore, LDAPChangeNotificationH
         ldapGroup.removeRole(ldapRole);
     }
 
+    /* (non-Javadoc)
+     * @see org.picketlink.idm.spi.IdentityStore#getMembership(org.picketlink.idm.model.Role, org.picketlink.idm.model.User, org.picketlink.idm.model.Group)
+     */
     @Override
     public Membership getMembership(Role role, User user, Group group) {
         // TODO Auto-generated method stub
         return null;
     }
 
+    /* (non-Javadoc)
+     * @see org.picketlink.idm.spi.IdentityStore#executeQuery(org.picketlink.idm.query.UserQuery, org.picketlink.idm.query.Range)
+     */
     @Override
     public List<User> executeQuery(UserQuery query, Range range) {
         // TODO: Deal with range
-
         List<User> users = new ArrayList<User>();
         Map<String, String[]> filters = query.getAttributeFilters();
         if (filters != null) {
@@ -369,22 +415,127 @@ public class LDAPIdentityStore implements IdentityStore, LDAPChangeNotificationH
                     }
                 }
             } catch (NamingException e) {
-                throw new RuntimeException(e);
+                throw new RuntimeException("Error executing user query.", e);
             }
         }
+
         return users;
     }
 
+    /* (non-Javadoc)
+     * @see org.picketlink.idm.spi.IdentityStore#executeQuery(org.picketlink.idm.query.GroupQuery, org.picketlink.idm.query.Range)
+     */
     @Override
     public List<Group> executeQuery(GroupQuery query, Range range) {
-        // TODO Auto-generated method stub
-        return null;
+        List<Group> groups = new ArrayList<Group>();
+
+        try {
+            BasicAttributes groupAttributeFilter = new BasicAttributes(true);
+
+            if (query.getId() != null) {
+                groupAttributeFilter.put(CN, query.getId());
+            }
+
+            if (query.getName() != null) {
+                groupAttributeFilter.put(CN, query.getName());
+            }
+
+            if (query.getRelatedUser() != null) {
+                LDAPUser ldapUser = (LDAPUser) getUser(query.getRelatedUser().getId());
+
+                groupAttributeFilter.put(MEMBER, ldapUser.getDN());
+            }
+
+            if (query.getRole() != null) {
+                LDAPRole ldapRole = (LDAPRole) getRole(query.getRole().getName());
+
+                groupAttributeFilter.put(MEMBER, ldapRole.getDN());
+            }
+
+            NamingEnumeration<SearchResult> groupSearchResult = ctx.search(groupDNSuffix, groupAttributeFilter);
+
+            // iterate over the returned roles
+            while (groupSearchResult.hasMore()) {
+                boolean isGroupSelected = true;
+
+                SearchResult groupResult = groupSearchResult.next();
+                Attributes groupAttributes = groupResult.getAttributes();
+
+                LDAPGroup childGroup = new LDAPGroup(groupAttributes, groupDNSuffix);
+
+                if (query.getParentGroup() != null && getParentGroup(childGroup) == null) {
+                    isGroupSelected = false;
+                }
+
+                if (isGroupSelected) {
+                    groups.add(childGroup);
+                }
+            }
+        } catch (NamingException e) {
+            throw new RuntimeException("Error executing group query.", e);
+        }
+
+        return groups;
     }
 
+    /* (non-Javadoc)
+     * @see org.picketlink.idm.spi.IdentityStore#executeQuery(org.picketlink.idm.query.RoleQuery, org.picketlink.idm.query.Range)
+     */
     @Override
     public List<Role> executeQuery(RoleQuery query, Range range) {
-        // TODO Auto-generated method stub
-        return null;
+        List<Role> roles = new ArrayList<Role>();
+
+        try {
+            BasicAttributes roleAttributeFilter = new BasicAttributes(true);
+
+            if (query.getName() != null) {
+                roleAttributeFilter.put(CN, query.getName());
+            }
+
+            NamingEnumeration<SearchResult> roleSearchResult = ctx.search(roleDNSuffix, roleAttributeFilter);
+
+            // iterate over the returned roles
+            while (roleSearchResult.hasMore()) {
+                boolean isRoleSelected = true;
+
+                SearchResult roleResult = roleSearchResult.next();
+                Attributes roleAttributes = roleResult.getAttributes();
+
+                LDAPRole ldapRole = new LDAPRole(roleAttributes, roleDNSuffix);
+
+                // checks if the role has a member mapped to the owner
+                if (query.getOwner() != null) {
+                    Attribute memberAttribute = roleAttributes.get(MEMBER);
+
+                    LDAPUser ldapUser = (LDAPUser) query.getOwner();
+
+                    if (!(memberAttribute != null && memberAttribute.contains(ldapUser.getDN()))) {
+                        isRoleSelected = false;
+                    }
+                }
+
+                // checks if the role is a member of the group
+                if (query.getGroup() != null) {
+                    LDAPGroup ldapGroup = (LDAPGroup) getGroup(query.getGroup().getName());
+
+                    Attributes groupAttributes = ldapGroup.getLDAPAttributes();
+                    Attribute memberAttribute = groupAttributes.get(MEMBER);
+
+                    // if the role is a group member then select it. Otherwise the role is not a member of the provided group.
+                    if (!(memberAttribute != null && memberAttribute.contains(ldapRole.getDN()))) {
+                        isRoleSelected = false;
+                    }
+                }
+
+                if (isRoleSelected) {
+                    roles.add(ldapRole);
+                }
+            }
+        } catch (NamingException e) {
+            throw new RuntimeException("Error executing role query.", e);
+        }
+
+        return roles;
     }
 
     @Override
@@ -393,6 +544,9 @@ public class LDAPIdentityStore implements IdentityStore, LDAPChangeNotificationH
         return null;
     }
 
+    /* (non-Javadoc)
+     * @see org.picketlink.idm.spi.IdentityStore#setAttribute(org.picketlink.idm.model.User, java.lang.String, java.lang.String[])
+     */
     @Override
     public void setAttribute(User user, String name, String[] values) {
         LDAPUser ldapUser = null;
@@ -409,6 +563,9 @@ public class LDAPIdentityStore implements IdentityStore, LDAPChangeNotificationH
         }
     }
 
+    /* (non-Javadoc)
+     * @see org.picketlink.idm.spi.IdentityStore#removeAttribute(org.picketlink.idm.model.User, java.lang.String)
+     */
     @Override
     public void removeAttribute(User user, String name) {
         if (user instanceof LDAPUser == false) {
@@ -418,6 +575,9 @@ public class LDAPIdentityStore implements IdentityStore, LDAPChangeNotificationH
         ldapUser.removeAttribute(name);
     }
 
+    /* (non-Javadoc)
+     * @see org.picketlink.idm.spi.IdentityStore#getAttributeValues(org.picketlink.idm.model.User, java.lang.String)
+     */
     @Override
     public String[] getAttributeValues(User user, String name) {
         if (user instanceof LDAPUser == false) {
@@ -427,6 +587,9 @@ public class LDAPIdentityStore implements IdentityStore, LDAPChangeNotificationH
         return ldapUser.getAttributeValues(name);
     }
 
+    /* (non-Javadoc)
+     * @see org.picketlink.idm.spi.IdentityStore#getAttributes(org.picketlink.idm.model.User)
+     */
     @Override
     public Map<String, String[]> getAttributes(User user) {
         if (user instanceof LDAPUser == false) {
@@ -436,6 +599,9 @@ public class LDAPIdentityStore implements IdentityStore, LDAPChangeNotificationH
         return ldapUser.getAttributes();
     }
 
+    /* (non-Javadoc)
+     * @see org.picketlink.idm.spi.IdentityStore#setAttribute(org.picketlink.idm.model.Group, java.lang.String, java.lang.String[])
+     */
     @Override
     public void setAttribute(Group group, String name, String[] values) {
         LDAPGroup ldapGroup = null;
@@ -447,6 +613,9 @@ public class LDAPIdentityStore implements IdentityStore, LDAPChangeNotificationH
         ldapGroup.setAttribute(name, values);
     }
 
+    /* (non-Javadoc)
+     * @see org.picketlink.idm.spi.IdentityStore#removeAttribute(org.picketlink.idm.model.Group, java.lang.String)
+     */
     @Override
     public void removeAttribute(Group group, String name) {
         LDAPGroup ldapGroup = null;
@@ -458,6 +627,9 @@ public class LDAPIdentityStore implements IdentityStore, LDAPChangeNotificationH
         ldapGroup.removeAttribute(name);
     }
 
+    /* (non-Javadoc)
+     * @see org.picketlink.idm.spi.IdentityStore#getAttributeValues(org.picketlink.idm.model.Group, java.lang.String)
+     */
     @Override
     public String[] getAttributeValues(Group group, String name) {
         LDAPGroup ldapGroup = null;
@@ -469,6 +641,9 @@ public class LDAPIdentityStore implements IdentityStore, LDAPChangeNotificationH
         return ldapGroup.getAttributeValues(name);
     }
 
+    /* (non-Javadoc)
+     * @see org.picketlink.idm.spi.IdentityStore#getAttributes(org.picketlink.idm.model.Group)
+     */
     @Override
     public Map<String, String[]> getAttributes(Group group) {
         LDAPGroup ldapGroup = null;
@@ -480,6 +655,9 @@ public class LDAPIdentityStore implements IdentityStore, LDAPChangeNotificationH
         return ldapGroup.getAttributes();
     }
 
+    /* (non-Javadoc)
+     * @see org.picketlink.idm.spi.IdentityStore#setAttribute(org.picketlink.idm.model.Role, java.lang.String, java.lang.String[])
+     */
     @Override
     public void setAttribute(Role role, String name, String[] values) {
         LDAPRole ldapRole = null;
@@ -491,6 +669,9 @@ public class LDAPIdentityStore implements IdentityStore, LDAPChangeNotificationH
         ldapRole.setAttribute(name, values);
     }
 
+    /* (non-Javadoc)
+     * @see org.picketlink.idm.spi.IdentityStore#removeAttribute(org.picketlink.idm.model.Role, java.lang.String)
+     */
     @Override
     public void removeAttribute(Role role, String name) {
         LDAPRole ldapRole = null;
@@ -502,6 +683,9 @@ public class LDAPIdentityStore implements IdentityStore, LDAPChangeNotificationH
         ldapRole.removeAttribute(name);
     }
 
+    /* (non-Javadoc)
+     * @see org.picketlink.idm.spi.IdentityStore#getAttributeValues(org.picketlink.idm.model.Role, java.lang.String)
+     */
     @Override
     public String[] getAttributeValues(Role role, String name) {
         LDAPRole ldapRole = null;
@@ -513,6 +697,9 @@ public class LDAPIdentityStore implements IdentityStore, LDAPChangeNotificationH
         return ldapRole.getAttributeValues(name);
     }
 
+    /* (non-Javadoc)
+     * @see org.picketlink.idm.spi.IdentityStore#getAttributes(org.picketlink.idm.model.Role)
+     */
     @Override
     public Map<String, String[]> getAttributes(Role role) {
         LDAPRole ldapRole = null;
@@ -524,56 +711,21 @@ public class LDAPIdentityStore implements IdentityStore, LDAPChangeNotificationH
         return ldapRole.getAttributes();
     }
 
-    protected String getFirstName(String name) {
-        String[] tokens = name.split("\\ ");
-        int length = tokens.length;
-        String firstName = null;
-
-        if (length > 0) {
-            firstName = tokens[0];
-        }
-        return firstName;
-    }
-
-    protected String getLastName(String name) {
-        String[] tokens = name.split("\\ ");
-        int length = tokens.length;
-        String lastName = null;
-
-        if (length > 2) {
-            lastName = tokens[2];
-        } else {
-            lastName = tokens[1];
-        }
-        return lastName;
-    }
-
-    protected String generateUserID(String firstName, String lastName) {
-        char f = firstName.charAt(0);
-        StringBuilder builder = new StringBuilder();
-        builder.append(f).append(lastName);
-
-        String userID = builder.toString();
-        int length = userID.length();
-        if (length > 7) {
-            return userID.substring(0, 7);
-        } else {
-            return userID;
-        }
-    }
-
     protected void ensureGroupDNExists() {
         try {
             Object obj = ctx.lookup(groupDNSuffix);
+
             if (obj == null) {
                 createGroupDN();
             }
+
             return; // exists
         } catch (NamingException e) {
             if (e instanceof NameNotFoundException) {
                 createGroupDN();
                 return;
             }
+
             throw new RuntimeException(e);
         }
     }
@@ -592,10 +744,15 @@ public class LDAPIdentityStore implements IdentityStore, LDAPChangeNotificationH
         }
     }
 
-    // Get the parent group by searching
-    protected Group parentGroup(LDAPGroup group) {
+    /**
+     * <p>Returns the parent group for the given child group.</p>
+     *
+     * @param childGroup
+     * @return
+     */
+    protected Group getParentGroup(LDAPGroup childGroup) {
         Attributes matchAttrs = new BasicAttributes(true);
-        matchAttrs.put(new BasicAttribute(MEMBER, CN + EQUAL + group.getName() + COMMA + groupDNSuffix));
+        matchAttrs.put(new BasicAttribute(MEMBER, CN + EQUAL + childGroup.getName() + COMMA + groupDNSuffix));
         // Search for objects with these matching attributes
         try {
             NamingEnumeration<SearchResult> answer = ctx.search(groupDNSuffix, matchAttrs, new String[] { CN });
@@ -606,11 +763,15 @@ public class LDAPIdentityStore implements IdentityStore, LDAPChangeNotificationH
                 return getGroup(cn);
             }
         } catch (NamingException e) {
-            throw new RuntimeException(e);
+            throw new RuntimeException("Error looking parent group for [" + childGroup.getDN() + "]", e);
         }
+
         return null;
     }
 
+    /* (non-Javadoc)
+     * @see org.picketlink.idm.internal.ldap.LDAPChangeNotificationHandler#handle(org.picketlink.idm.internal.ldap.LDAPObjectChangedNotification)
+     */
     @Override
     public void handle(LDAPObjectChangedNotification notification) {
         DirContext object = notification.getLDAPObject();
@@ -624,6 +785,13 @@ public class LDAPIdentityStore implements IdentityStore, LDAPChangeNotificationH
                     if (attrib == null)
                         throw new RuntimeException("attrib is null");
                     ModificationItem[] mods = new ModificationItem[] { new ModificationItem(DirContext.ADD_ATTRIBUTE, attrib) };
+                    ctx.modifyAttributes(user.getDN(), mods);
+                }
+                if (notification.getNtype() == NType.REPLACE_ATTRIBUTE) {
+                    Attribute attrib = notification.getAttribute();
+                    if (attrib == null)
+                        throw new RuntimeException("attrib is null");
+                    ModificationItem[] mods = new ModificationItem[] { new ModificationItem(DirContext.REPLACE_ATTRIBUTE, attrib) };
                     ctx.modifyAttributes(user.getDN(), mods);
                 }
                 if (notification.getNtype() == NType.REMOVE_ATTRIBUTE) {
@@ -641,6 +809,9 @@ public class LDAPIdentityStore implements IdentityStore, LDAPChangeNotificationH
         }
     }
 
+    /* (non-Javadoc)
+     * @see org.picketlink.idm.internal.ldap.ManagedAttributeLookup#isManaged(java.lang.String)
+     */
     @Override
     public boolean isManaged(String attributeName) {
         if (managedAttributes.contains(attributeName)) {
@@ -891,4 +1062,6 @@ public class LDAPIdentityStore implements IdentityStore, LDAPChangeNotificationH
             throw new RuntimeException(e);
         }
     }
+
+
 }

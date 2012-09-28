@@ -39,7 +39,7 @@ public class LDAPObjectChangedNotification {
      * Notification Type
      */
     public enum NType {
-        ADD_ATTRIBUTE, REMOVE_ATTRIBUTE, CUSTOM_ATTRIBUTE
+        ADD_ATTRIBUTE, REMOVE_ATTRIBUTE, CUSTOM_ATTRIBUTE, REPLACE_ATTRIBUTE
     };
 
     public LDAPObjectChangedNotification(DirContext ldapObject, NType nt, Attribute attribute) {

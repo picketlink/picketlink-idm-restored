@@ -35,4 +35,5 @@ public interface LDAPConstants {
     String MEMBER = "member";
     String OBJECT_CLASS = "objectclass";
     String UID = "uid";
+    Object GROUP_OF_NAMES = "groupOfNames";
 }

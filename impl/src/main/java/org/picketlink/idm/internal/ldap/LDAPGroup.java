@@ -27,6 +27,7 @@ import static org.picketlink.idm.internal.ldap.LDAPConstants.OBJECT_CLASS;
 
 import javax.naming.NamingException;
 import javax.naming.directory.Attribute;
+import javax.naming.directory.Attributes;
 import javax.naming.directory.BasicAttribute;
 
 import org.picketlink.idm.model.Group;
@@ -52,6 +53,11 @@ public class LDAPGroup extends DirContextAdaptor implements Group {
         attributes.put(oc);
     }
 
+    public LDAPGroup(Attributes attributes, String groupDNSuffix) {
+        this.attributes = attributes;
+        this.groupDNSuffix = groupDNSuffix;
+    }
+
     public String getDN() {
         return CN + EQUAL + groupName + COMMA + groupDNSuffix;
     }
@@ -70,6 +76,22 @@ public class LDAPGroup extends DirContextAdaptor implements Group {
         memberAttribute.add(role.getDN());
     }
 
+    public void addUser(LDAPUser user) {
+        Attribute memberAttribute = attributes.get(MEMBER);
+        if (memberAttribute != null) {
+            if (memberAttribute.contains(SPACE_STRING)) {
+                memberAttribute.remove(SPACE_STRING);
+            }
+        } else {
+            memberAttribute = new BasicAttribute(OBJECT_CLASS);
+            memberAttribute.add("inetOrgPerson");
+            memberAttribute.add("organizationalPerson");
+            memberAttribute.add("person");
+            memberAttribute.add("top");
+        }
+        memberAttribute.add(user.getDN());
+    }
+
     public void removeRole(LDAPRole role) {
         Attribute memberAttribute = attributes.get(MEMBER);
         if (memberAttribute != null) {
@@ -79,7 +101,7 @@ public class LDAPGroup extends DirContextAdaptor implements Group {
 
     @Override
     public String getId() {
-        return null;
+        return getName();
     }
 
     public void setName(String name) {
@@ -108,10 +130,12 @@ public class LDAPGroup extends DirContextAdaptor implements Group {
     }
 
     public void setParentGroup(Group parent) {
-        if (parent instanceof LDAPGroup == false) {
+        if (!(parent instanceof LDAPGroup)) {
             throw new RuntimeException("Wrong type:" + parent.getClass());
         }
+
         LDAPGroup parentGroup = (LDAPGroup) parent;
+
         this.parent = parentGroup;
     }
 
