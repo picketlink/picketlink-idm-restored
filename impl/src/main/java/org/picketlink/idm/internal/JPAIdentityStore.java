@@ -53,6 +53,7 @@ import org.picketlink.idm.model.IdentityType;
 import org.picketlink.idm.model.Membership;
 import org.picketlink.idm.model.Role;
 import org.picketlink.idm.model.User;
+import org.picketlink.idm.password.PasswordValidator;
 import org.picketlink.idm.query.GroupQuery;
 import org.picketlink.idm.query.MembershipQuery;
 import org.picketlink.idm.query.Range;
@@ -662,6 +663,15 @@ public class JPAIdentityStore implements IdentityStore {
     @Override
     public boolean updateCertificate(User user, X509Certificate certificate) {
         return false;
+    }
+
+    /* (non-Javadoc)
+     * @see org.picketlink.idm.spi.IdentityStore#validatePassword(org.picketlink.idm.model.User, org.picketlink.idm.password.PasswordValidator)
+     */
+    @Override
+    public boolean validatePassword(User user, PasswordValidator passwordValidator) {
+        String userPasswd = user.getAttribute(PASSWORD_ATTRIBUTE_NAME);
+        return passwordValidator.validate(userPasswd);
     }
 
 

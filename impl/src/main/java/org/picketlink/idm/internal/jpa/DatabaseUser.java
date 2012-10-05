@@ -152,6 +152,6 @@ public class DatabaseUser extends AbstractDatabaseIdentityType<DatabaseUserAttri
     protected DatabaseUserAttribute createAttribute(String name, String value) {
         return new DatabaseUserAttribute(name, value);
     }
-
+    
     // TODO: implement hashcode and equals methods
 }

@@ -19,55 +19,28 @@
  * Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
  * 02110-1301 USA, or see the FSF site: http://www.fsf.org.
  */
-package org.picketlink.idm.model;
+
+package org.picketlink.idm.password;
 
 /**
- * A simple User implementation
+ * <p>
+ * Defines a simple interface to provide some specific logic to validate users passwords. Given that the user's password is not
+ * exposed directly by the API, implementations can have access to the password and provide some specific logic to validate it.
+ * </p>
+ * 
+ * @author <a href="mailto:psilva@redhat.com">Pedro Silva</a>
+ * 
  */
-public class SimpleUser extends AbstractIdentityType implements User {
-    private String id;
-    private String firstName;
-    private String lastName;
-    private String email;
+public interface PasswordValidator {
 
-    public SimpleUser(String id) {
-        this.id = id;
-    }
-
-    public String getId() {
-        return id;
-    }
-
-    public String getFirstName() {
-        return firstName;
-    }
-
-    public void setFirstName(String firstName) {
-        this.firstName = firstName;
-    }
-
-    public String getLastName() {
-        return lastName;
-    }
-
-    public void setLastName(String lastName) {
-        this.lastName = lastName;
-    }
-
-    public String getFullName() {
-        return String.format("%s %s", firstName, lastName);
-    }
-
-    public String getEmail() {
-        return email;
-    }
-
-    public void setEmail(String email) {
-        this.email = email;
-    }
-
-    public String getKey() {
-        return String.format("%s%s", KEY_PREFIX, id);
-    }
+    /**
+     * <p>
+     * Validates the user's password using the specified <code>password</code> retrieved from the identity store.
+     * </p>
+     * 
+     * @param userPassword
+     * @return
+     */
+    boolean validate(String userPassword);
 
 }

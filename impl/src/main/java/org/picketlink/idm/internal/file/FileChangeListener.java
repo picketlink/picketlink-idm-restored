@@ -19,55 +19,30 @@
  * Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
  * 02110-1301 USA, or see the FSF site: http://www.fsf.org.
  */
-package org.picketlink.idm.model;
+
+package org.picketlink.idm.internal.file;
 
 /**
- * A simple User implementation
+ * @author <a href="mailto:psilva@redhat.com">Pedro Silva</a>
+ *
  */
-public class SimpleUser extends AbstractIdentityType implements User {
-    private String id;
-    private String firstName;
-    private String lastName;
-    private String email;
+public class FileChangeListener {
 
-    public SimpleUser(String id) {
-        this.id = id;
+    private FileBasedIdentityStore store;
+
+    public FileChangeListener(FileBasedIdentityStore store) {
+        this.store = store;
+    }
+    
+    public void updateUsers() {
+        this.store.flushUsers();
     }
 
-    public String getId() {
-        return id;
+    public void updateRoles() {
+        this.store.flushRoles();
     }
 
-    public String getFirstName() {
-        return firstName;
+    public void updateGroups() {
+        this.store.flushGroups();
     }
-
-    public void setFirstName(String firstName) {
-        this.firstName = firstName;
-    }
-
-    public String getLastName() {
-        return lastName;
-    }
-
-    public void setLastName(String lastName) {
-        this.lastName = lastName;
-    }
-
-    public String getFullName() {
-        return String.format("%s %s", firstName, lastName);
-    }
-
-    public String getEmail() {
-        return email;
-    }
-
-    public void setEmail(String email) {
-        this.email = email;
-    }
-
-    public String getKey() {
-        return String.format("%s%s", KEY_PREFIX, id);
-    }
-
 }

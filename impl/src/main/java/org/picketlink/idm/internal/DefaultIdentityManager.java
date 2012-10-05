@@ -34,6 +34,7 @@ import org.picketlink.idm.model.IdentityType;
 import org.picketlink.idm.model.Role;
 import org.picketlink.idm.model.User;
 import org.picketlink.idm.password.PasswordEncoder;
+import org.picketlink.idm.password.PasswordValidator;
 import org.picketlink.idm.query.GroupQuery;
 import org.picketlink.idm.query.MembershipQuery;
 import org.picketlink.idm.query.RoleQuery;
@@ -295,5 +296,10 @@ public class DefaultIdentityManager implements IdentityManager {
     public IdentityType lookupIdentityByKey(String key) {
         // TODO Auto-generated method stub
         return null;
+    }
+
+    @Override
+    public boolean validatePassword(User user, PasswordValidator passwordValidator) {
+        return this.store.validatePassword(user, passwordValidator);
     }
 }

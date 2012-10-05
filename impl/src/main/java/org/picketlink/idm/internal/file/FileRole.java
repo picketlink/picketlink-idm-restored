@@ -19,55 +19,46 @@
  * Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
  * 02110-1301 USA, or see the FSF site: http://www.fsf.org.
  */
-package org.picketlink.idm.model;
+
+package org.picketlink.idm.internal.file;
+
+import org.picketlink.idm.model.Role;
 
 /**
- * A simple User implementation
+ * @author <a href="mailto:psilva@redhat.com">Pedro Silva</a>
+ *
  */
-public class SimpleUser extends AbstractIdentityType implements User {
-    private String id;
-    private String firstName;
-    private String lastName;
-    private String email;
+public class FileRole extends AbstractFileIdentityType implements Role {
 
-    public SimpleUser(String id) {
-        this.id = id;
+    private static final long serialVersionUID = -193915218822768319L;
+    
+    private String name;
+
+    public FileRole() {
+        
+    }
+    
+    public FileRole(String name) {
+        this.name = name;
     }
 
-    public String getId() {
-        return id;
+    @Override
+    public String getName() {
+        return this.name;
     }
-
-    public String getFirstName() {
-        return firstName;
-    }
-
-    public void setFirstName(String firstName) {
-        this.firstName = firstName;
-    }
-
-    public String getLastName() {
-        return lastName;
-    }
-
-    public void setLastName(String lastName) {
-        this.lastName = lastName;
-    }
-
-    public String getFullName() {
-        return String.format("%s %s", firstName, lastName);
-    }
-
-    public String getEmail() {
-        return email;
-    }
-
-    public void setEmail(String email) {
-        this.email = email;
-    }
-
+    
+    @Override
     public String getKey() {
-        return String.format("%s%s", KEY_PREFIX, id);
+        return getName();
+    }
+    
+    public void setName(String name) {
+        this.name = name;
+    }
+
+    @Override
+    protected void update() {
+        super.changeListener.updateRoles();
     }
 
 }

@@ -25,11 +25,12 @@ import java.security.cert.X509Certificate;
 import java.util.Collection;
 import java.util.Date;
 
-import org.picketlink.idm.password.PasswordEncoder;
 import org.picketlink.idm.model.Group;
 import org.picketlink.idm.model.IdentityType;
 import org.picketlink.idm.model.Role;
 import org.picketlink.idm.model.User;
+import org.picketlink.idm.password.PasswordEncoder;
+import org.picketlink.idm.password.PasswordValidator;
 import org.picketlink.idm.query.GroupQuery;
 import org.picketlink.idm.query.MembershipQuery;
 import org.picketlink.idm.query.RoleQuery;
@@ -118,6 +119,23 @@ public interface IdentityManager {
     // Password Management
     boolean validatePassword(User user, String password);
 
+    /**
+     * <p>
+     * Validates the user's password using the specified {@link PasswordValidator} instance. As the user's password is not
+     * directly exposed for developers, this method can be used when some specific logic must be used to validate user's
+     * password.
+     * </p>
+     * <p>
+     * Eg.: For digest authentication you need to access the user's password to calculate the digest and check it against the
+     * provided digest.
+     * </p>
+     * 
+     * @param user
+     * @param passwordValidator
+     * @return
+     */
+    boolean validatePassword(User user, PasswordValidator passwordValidator);
+
     void updatePassword(User user, String password);
 
     void setPasswordEncoder(PasswordEncoder encoder);
@@ -134,4 +152,5 @@ public interface IdentityManager {
     void setExpirationDate(IdentityType identityType, Date expirationDate);
 
     IdentityType lookupIdentityByKey(String key);
+
 }

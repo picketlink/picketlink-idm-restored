@@ -19,55 +19,108 @@
  * Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
  * 02110-1301 USA, or see the FSF site: http://www.fsf.org.
  */
-package org.picketlink.idm.model;
+
+package org.picketlink.idm.internal.file;
+
+import java.io.Serializable;
+
+import org.picketlink.idm.model.User;
 
 /**
- * A simple User implementation
+ * @author <a href="mailto:psilva@redhat.com">Pedro Silva</a>
+ * 
  */
-public class SimpleUser extends AbstractIdentityType implements User {
+public class FileUser extends AbstractFileIdentityType implements User, Serializable {
+
+    private static final long serialVersionUID = 7828377893630773126L;
+    
     private String id;
     private String firstName;
     private String lastName;
     private String email;
+    private String fullName;
 
-    public SimpleUser(String id) {
+    public FileUser(String id) {
         this.id = id;
     }
 
+    /**
+     * @return the id
+     */
     public String getId() {
         return id;
     }
+    
+    @Override
+    public String getKey() {
+        return getId();
+    }
 
+    /**
+     * @return the firstName
+     */
     public String getFirstName() {
         return firstName;
     }
 
+    /**
+     * @param firstName the firstName to set
+     */
     public void setFirstName(String firstName) {
         this.firstName = firstName;
     }
 
+    /**
+     * @return the lastName
+     */
     public String getLastName() {
         return lastName;
     }
 
+    /**
+     * @param lastName the lastName to set
+     */
     public void setLastName(String lastName) {
         this.lastName = lastName;
+        update();
     }
 
-    public String getFullName() {
-        return String.format("%s %s", firstName, lastName);
-    }
-
+    /**
+     * @return the email
+     */
     public String getEmail() {
         return email;
     }
 
+    /**
+     * @param email the email to set
+     */
     public void setEmail(String email) {
         this.email = email;
+        update();
     }
 
-    public String getKey() {
-        return String.format("%s%s", KEY_PREFIX, id);
+    /**
+     * @return the fullName
+     */
+    public String getFullName() {
+        return fullName;
+    }
+
+    /**
+     * @param fullName the fullName to set
+     */
+    public void setFullName(String fullName) {
+        this.fullName = fullName;
+        update();
+    }
+
+    /* (non-Javadoc)
+     * @see org.picketlink.idm.internal.file.AbstractFileIdentityType#update()
+     */
+    @Override
+    protected void update() {
+        super.changeListener.updateUsers();
     }
 
 }
