@@ -23,6 +23,7 @@
 package org.picketlink.idm.internal.file;
 
 import org.picketlink.idm.model.Group;
+import org.picketlink.idm.model.Role;
 
 /**
  * @author <a href="mailto:psilva@redhat.com">Pedro Silva</a>
@@ -91,4 +92,23 @@ public class FileGroup extends AbstractFileIdentityType implements Group {
         super.changeListener.updateGroups();
     }
 
+    @Override
+    public int hashCode() {
+        return super.hashCode();
+    }
+    
+    @Override
+    public boolean equals(Object obj) {
+        if (obj == null) {
+            return false;
+        }
+
+        if (!(obj instanceof Group)) {
+            return false;
+        }
+
+        Group other = (Group) obj;
+
+        return other.getName() != null && this.getName() != null && other.getName().equals(this.getName());
+    }
 }

@@ -47,6 +47,7 @@ import javax.naming.directory.SearchResult;
 import javax.naming.ldap.InitialLdapContext;
 
 import org.picketlink.idm.internal.config.LDAPConfiguration;
+import org.picketlink.idm.internal.jpa.DefaultMembershipQuery;
 import org.picketlink.idm.internal.ldap.LDAPChangeNotificationHandler;
 import org.picketlink.idm.internal.ldap.LDAPConstants;
 import org.picketlink.idm.internal.ldap.LDAPGroup;
@@ -936,9 +937,12 @@ public class LDAPIdentityStore implements IdentityStore, LDAPChangeNotificationH
         return users;
     }
 
+    /* (non-Javadoc)
+     * @see org.picketlink.idm.spi.IdentityStore#createMembershipQuery()
+     */
     @Override
     public MembershipQuery createMembershipQuery() {
-        throw new RuntimeException();
+        return new DefaultMembershipQuery(this);
     }
 
     public boolean validatePassword(User user, String password) {

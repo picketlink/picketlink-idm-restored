@@ -20,64 +20,31 @@
  * 02110-1301 USA, or see the FSF site: http://www.fsf.org.
  */
 
-package org.picketlink.idm.internal.file;
+package org.picketlink.test.idm.internal.file;
 
-import org.picketlink.idm.model.Role;
+import org.picketlink.idm.IdentityManager;
+import org.picketlink.idm.internal.DefaultIdentityManager;
+import org.picketlink.idm.internal.file.FileBasedIdentityStore;
 
 /**
+ * <p>
+ * Base class for testing the {@link FileBasedIdentityStore}.
+ * </p>
+ * 
  * @author <a href="mailto:psilva@redhat.com">Pedro Silva</a>
  * 
  */
-public class FileRole extends AbstractFileIdentityType implements Role {
+public abstract class AbstractFileIdentityManagerTestCase {
 
-    private static final long serialVersionUID = -193915218822768319L;
+    private IdentityManager identityManager;
 
-    private String name;
-
-    public FileRole() {
-
-    }
-
-    public FileRole(String name) {
-        this.name = name;
-    }
-
-    @Override
-    public String getName() {
-        return this.name;
-    }
-
-    @Override
-    public String getKey() {
-        return getName();
-    }
-
-    public void setName(String name) {
-        this.name = name;
-    }
-
-    @Override
-    protected void update() {
-        super.changeListener.updateRoles();
-    }
-
-    @Override
-    public int hashCode() {
-        return super.hashCode();
-    }
-    
-    @Override
-    public boolean equals(Object obj) {
-        if (obj == null) {
-            return false;
+    protected IdentityManager getIdentityManager() {
+        if (this.identityManager == null) {
+            FileBasedIdentityStore store = new FileBasedIdentityStore();
+            
+            this.identityManager = new DefaultIdentityManager(store);
         }
 
-        if (!(obj instanceof Role)) {
-            return false;
-        }
-
-        Role other = (Role) obj;
-
-        return other.getName() != null && this.getName() != null && other.getName().equals(this.getName());
+        return this.identityManager;
     }
 }

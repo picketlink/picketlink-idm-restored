@@ -207,7 +207,9 @@ public class DefaultIdentityManager implements IdentityManager {
 
     @Override
     public boolean hasRole(Role role, IdentityType identityType, Group group) {
-        throw new RuntimeException();
+        MembershipQuery query = createMembershipQuery();
+        
+        return !query.executeQuery().isEmpty();
     }
 
     @Override

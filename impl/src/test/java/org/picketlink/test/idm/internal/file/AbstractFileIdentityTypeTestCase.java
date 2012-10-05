@@ -27,15 +27,16 @@ import static junit.framework.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 
 import org.picketlink.idm.IdentityManager;
-import org.picketlink.idm.internal.DefaultIdentityManager;
 import org.picketlink.idm.internal.file.FileBasedIdentityStore;
 import org.picketlink.idm.model.IdentityType;
 
 /**
+ * <p>Base class for {@link IdentityType} test cases using the {@link FileBasedIdentityStore}.</p>
+ * 
  * @author <a href="mailto:psilva@redhat.com">Pedro Silva</a>
  *
  */
-public abstract class AbstractFileIdentityTypeTestCase {
+public abstract class AbstractFileIdentityTypeTestCase extends AbstractFileIdentityManagerTestCase {
 
     /**
      * <p>
@@ -81,8 +82,5 @@ public abstract class AbstractFileIdentityTypeTestCase {
 
         assertNull(identityType.getAttributeValues("MultiValuedAttribute"));
     }
-
-    protected IdentityManager getIdentityManager() {
-        return new DefaultIdentityManager(new FileBasedIdentityStore());
-    }
+    
 }

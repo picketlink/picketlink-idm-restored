@@ -27,12 +27,13 @@ import static org.junit.Assert.assertNull;
 
 import org.junit.Test;
 import org.picketlink.idm.IdentityManager;
+import org.picketlink.idm.internal.file.FileBasedIdentityStore;
 import org.picketlink.idm.model.Group;
 import org.picketlink.idm.model.IdentityType;
 
 /**
  * <p>
- * Tests the creation of groups using the {@link JPAIdentityManager}.
+ * Tests the creation of groups using the {@link FileBasedIdentityStore}.
  * </p>
  *
  * @author <a href="mailto:psilva@redhat.com">Pedro Silva</a>

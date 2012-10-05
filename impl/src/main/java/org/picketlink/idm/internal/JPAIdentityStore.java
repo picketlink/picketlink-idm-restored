@@ -541,6 +541,9 @@ public class JPAIdentityStore implements IdentityStore {
         return role.getAttributes();
     }
 
+    /* (non-Javadoc)
+     * @see org.picketlink.idm.spi.IdentityStore#createMembershipQuery()
+     */
     @Override
     public MembershipQuery createMembershipQuery() {
         return new DefaultMembershipQuery(this);

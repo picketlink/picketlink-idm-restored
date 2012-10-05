@@ -27,13 +27,13 @@ import static org.junit.Assert.assertNull;
 
 import org.junit.Test;
 import org.picketlink.idm.IdentityManager;
-import org.picketlink.idm.internal.JPAIdentityStore;
+import org.picketlink.idm.internal.file.FileBasedIdentityStore;
 import org.picketlink.idm.model.IdentityType;
 import org.picketlink.idm.model.Role;
 
 /**
  * <p>
- * Tests the creation of roles using the {@link JPAIdentityStore}.
+ * Tests the creation of roles using the {@link FileBasedIdentityStore}.
  * </p>
  *
  * @author <a href="mailto:psilva@redhat.com">Pedro Silva</a>

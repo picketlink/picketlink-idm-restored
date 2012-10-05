@@ -26,8 +26,6 @@ import java.util.Collection;
 import org.junit.Assert;
 import org.junit.Test;
 import org.picketlink.idm.IdentityManager;
-import org.picketlink.idm.internal.DefaultIdentityManager;
-import org.picketlink.idm.internal.JPAIdentityStore;
 import org.picketlink.idm.internal.file.FileBasedIdentityStore;
 import org.picketlink.idm.model.Group;
 import org.picketlink.idm.model.Membership;
@@ -36,12 +34,12 @@ import org.picketlink.idm.model.User;
 
 /**
  * <p>
- * Tests the creation of memberships using the {@link JPAIdentityStore}.
+ * Tests the creation of memberships using the {@link FileBasedIdentityStore}.
  * </p>
  *
  * @author <a href="mailto:psilva@redhat.com">Pedro Silva</a>
  */
-public class FileMembershipTestCase {
+public class FileMembershipTestCase extends AbstractFileIdentityManagerTestCase {
 
     /**
      * <p>
@@ -73,9 +71,4 @@ public class FileMembershipTestCase {
         Assert.assertTrue(roles.isEmpty());
     }
 
-
-
-    protected IdentityManager getIdentityManager() {
-        return new DefaultIdentityManager(new FileBasedIdentityStore());
-    }
 }

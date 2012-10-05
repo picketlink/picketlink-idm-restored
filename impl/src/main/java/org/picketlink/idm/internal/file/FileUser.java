@@ -122,5 +122,24 @@ public class FileUser extends AbstractFileIdentityType implements User, Serializ
     protected void update() {
         super.changeListener.updateUsers();
     }
-
+    
+    @Override
+    public int hashCode() {
+        return super.hashCode();
+    }
+    
+    @Override
+    public boolean equals(Object obj) {
+        if (obj == null) {
+            return false;
+        }
+        
+        if (!(obj instanceof User)) {
+            return false;
+        }
+        
+        User other = (User) obj;
+        
+        return other.getId() != null && this.getId() != null && other.getId().equals(this.getId());
+    }
 }
