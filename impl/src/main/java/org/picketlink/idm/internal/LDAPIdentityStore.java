@@ -47,6 +47,7 @@ import javax.naming.directory.SearchResult;
 import javax.naming.ldap.InitialLdapContext;
 
 import org.picketlink.idm.internal.config.LDAPConfiguration;
+import org.picketlink.idm.internal.jpa.DefaultMembershipQuery;
 import org.picketlink.idm.internal.ldap.LDAPChangeNotificationHandler;
 import org.picketlink.idm.internal.ldap.LDAPConstants;
 import org.picketlink.idm.internal.ldap.LDAPGroup;
@@ -63,6 +64,7 @@ import org.picketlink.idm.model.Group;
 import org.picketlink.idm.model.Membership;
 import org.picketlink.idm.model.Role;
 import org.picketlink.idm.model.User;
+import org.picketlink.idm.password.PasswordValidator;
 import org.picketlink.idm.query.GroupQuery;
 import org.picketlink.idm.query.MembershipQuery;
 import org.picketlink.idm.query.Range;
@@ -77,6 +79,7 @@ import org.picketlink.idm.spi.IdentityStore;
  * @author Anil Saldhana
  */
 public class LDAPIdentityStore implements IdentityStore, LDAPChangeNotificationHandler, ManagedAttributeLookup {
+    private static final String USER_PASSWORD_ATTRIBUTE = "userpassword";
     public final String COMMA = ",";
     public final String EQUAL = "=";
 
@@ -934,9 +937,12 @@ public class LDAPIdentityStore implements IdentityStore, LDAPChangeNotificationH
         return users;
     }
 
+    /* (non-Javadoc)
+     * @see org.picketlink.idm.spi.IdentityStore#createMembershipQuery()
+     */
     @Override
     public MembershipQuery createMembershipQuery() {
-        throw new RuntimeException();
+        return new DefaultMembershipQuery(this);
     }
 
     public boolean validatePassword(User user, String password) {
@@ -987,7 +993,7 @@ public class LDAPIdentityStore implements IdentityStore, LDAPChangeNotificationH
 
             ModificationItem[] mods = new ModificationItem[1];
 
-            Attribute mod0 = new BasicAttribute("userpassword", password);
+            Attribute mod0 = new BasicAttribute(USER_PASSWORD_ATTRIBUTE, password);
 
             mods[0] = new ModificationItem(DirContext.REPLACE_ATTRIBUTE, mod0);
 
@@ -1091,6 +1097,21 @@ public class LDAPIdentityStore implements IdentityStore, LDAPChangeNotificationH
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
+    }
+
+    /* (non-Javadoc)
+     * @see org.picketlink.idm.spi.IdentityStore#validatePassword(org.picketlink.idm.model.User, org.picketlink.idm.password.PasswordValidator)
+     */
+    @Override
+    public boolean validatePassword(User user, PasswordValidator passwordValidator) {
+        LDAPUser ldapUser = (LDAPUser) getUser(user.getId());
+        String password = ldapUser.getAttribute(USER_PASSWORD_ATTRIBUTE);
+        
+        if (validatePassword(user, password)) {
+            return passwordValidator.validate(password);
+        }
+        
+        return false;
     }
 
 

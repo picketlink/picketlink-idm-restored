@@ -29,6 +29,7 @@ import org.picketlink.idm.model.Group;
 import org.picketlink.idm.model.Membership;
 import org.picketlink.idm.model.Role;
 import org.picketlink.idm.model.User;
+import org.picketlink.idm.password.PasswordValidator;
 import org.picketlink.idm.query.GroupQuery;
 import org.picketlink.idm.query.MembershipQuery;
 import org.picketlink.idm.query.Range;
@@ -37,7 +38,7 @@ import org.picketlink.idm.query.UserQuery;
 
 /**
  * IdentityStore representation providing minimal SPI
- *
+ * 
  */
 public interface IdentityStore {
     // TODO: Javadocs
@@ -106,7 +107,7 @@ public interface IdentityStore {
     /**
      * Set attribute with given name and values. Operation will overwrite any previous values. Null value or empty array will
      * remove attribute.
-     *
+     * 
      * @param user
      * @param name of attribute
      * @param values to be set
@@ -115,7 +116,7 @@ public interface IdentityStore {
 
     /**
      * @param user Remove attribute with given name
-     *
+     * 
      * @param name of attribute
      */
     void removeAttribute(User user, String name);
@@ -138,7 +139,7 @@ public interface IdentityStore {
     /**
      * Set attribute with given name and values. Operation will overwrite any previous values. Null value or empty array will
      * remove attribute.
-     *
+     * 
      * @param group
      * @param name of attribute
      * @param values to be set
@@ -147,7 +148,7 @@ public interface IdentityStore {
 
     /**
      * Remove attribute with given name
-     *
+     * 
      * @param group
      * @param name of attribute
      */
@@ -171,7 +172,7 @@ public interface IdentityStore {
     /**
      * Set attribute with given name and values. Operation will overwrite any previous values. Null value or empty array will
      * remove attribute.
-     *
+     * 
      * @param role
      * @param name of attribute
      * @param values to be set
@@ -180,7 +181,7 @@ public interface IdentityStore {
 
     /**
      * Remove attribute with given name
-     *
+     * 
      * @param role
      * @param name of attribute
      */
@@ -203,9 +204,20 @@ public interface IdentityStore {
      * <p>
      * Creates a {@link MembershipQuery} instance.
      * </p>
-     *
+     * 
      * @return
      */
     MembershipQuery createMembershipQuery();
+
+    /**
+     * <p>
+     * Validates a password using the provided {@link PasswordValidator} instance.
+     * </p>
+     * 
+     * @param user
+     * @param passwordValidator
+     * @return
+     */
+    boolean validatePassword(User user, PasswordValidator passwordValidator);
 
 }

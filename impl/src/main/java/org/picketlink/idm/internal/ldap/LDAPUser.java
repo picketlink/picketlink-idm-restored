@@ -218,6 +218,11 @@ public class LDAPUser extends DirContextAdaptor implements User {
         }
         return null;
     }
+    
+    @Override
+    public String getKey() {
+        return getId();
+    }
 
     @Override
     public String getFirstName() {
