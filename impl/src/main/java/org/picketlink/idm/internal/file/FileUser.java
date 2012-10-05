@@ -20,49 +20,40 @@
  * 02110-1301 USA, or see the FSF site: http://www.fsf.org.
  */
 
-package org.picketlink.idm.internal.jpa;
+package org.picketlink.idm.internal.file;
 
-import java.util.ArrayList;
-import java.util.List;
-
-import javax.persistence.CascadeType;
-import javax.persistence.Entity;
-import javax.persistence.NamedQuery;
-import javax.persistence.OneToMany;
-import javax.persistence.Transient;
+import java.io.Serializable;
 
 import org.picketlink.idm.model.User;
 
 /**
- * <p>
- * JPA Entity that maps {@link User} instances.
- * </p>
- *
  * @author <a href="mailto:psilva@redhat.com">Pedro Silva</a>
- *
+ * 
  */
-@Entity
-@NamedQuery(name = NamedQueries.USER_LOAD_BY_KEY, query = "from DatabaseUser where key = :key")
-public class DatabaseUser extends AbstractDatabaseIdentityType<DatabaseUserAttribute> implements User {
+public class FileUser extends AbstractFileIdentityType implements User, Serializable {
 
+    private static final long serialVersionUID = 7828377893630773126L;
+    
+    private String id;
     private String firstName;
     private String lastName;
-
     private String email;
-
     private String fullName;
 
-    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL)
-    private List<DatabaseUserAttribute> ownerAttributes = new ArrayList<DatabaseUserAttribute>();
-
-    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL)
-    private List<DatabaseMembership> memberships = new ArrayList<DatabaseMembership>();
-
-    public DatabaseUser() {
+    public FileUser(String id) {
+        this.id = id;
     }
 
-    public DatabaseUser(String key) {
-        super(key);
+    /**
+     * @return the id
+     */
+    public String getId() {
+        return id;
+    }
+    
+    @Override
+    public String getKey() {
+        return getId();
     }
 
     /**
@@ -87,22 +78,11 @@ public class DatabaseUser extends AbstractDatabaseIdentityType<DatabaseUserAttri
     }
 
     /**
-     * @param laststring_idName the lastName to set
+     * @param lastName the lastName to set
      */
     public void setLastName(String lastName) {
         this.lastName = lastName;
-    }
-
-    /**
-     * @return the fullName
-     */
-    @Transient
-    public String getFullName() {
-        if (this.fullName == null) {
-            this.fullName = this.getFirstName() + " " + this.getLastName();
-        }
-
-        return this.fullName;
+        update();
     }
 
     /**
@@ -117,41 +97,49 @@ public class DatabaseUser extends AbstractDatabaseIdentityType<DatabaseUserAttri
      */
     public void setEmail(String email) {
         this.email = email;
+        update();
     }
 
     /**
-     * @return the memberships
+     * @return the fullName
      */
-    public List<DatabaseMembership> getMemberships() {
-        return memberships;
+    public String getFullName() {
+        return fullName;
     }
 
     /**
-     * @param memberships the memberships to set
+     * @param fullName the fullName to set
      */
-    public void setMemberships(List<DatabaseMembership> memberships) {
-        this.memberships = memberships;
+    public void setFullName(String fullName) {
+        this.fullName = fullName;
+        update();
     }
 
-    /**
-     * @return the userAttributes
+    /* (non-Javadoc)
+     * @see org.picketlink.idm.internal.file.AbstractFileIdentityType#update()
      */
     @Override
-    public List<DatabaseUserAttribute> getOwnerAttributes() {
-        return ownerAttributes;
-    }
-
-    /**
-     * @param userAttributes the userAttributes to set
-     */
-    public void setOwnerAttributes(List<DatabaseUserAttribute> userAttributes) {
-        this.ownerAttributes = userAttributes;
-    }
-
-    @Override
-    protected DatabaseUserAttribute createAttribute(String name, String value) {
-        return new DatabaseUserAttribute(name, value);
+    protected void update() {
+        super.changeListener.updateUsers();
     }
     
-    // TODO: implement hashcode and equals methods
+    @Override
+    public int hashCode() {
+        return super.hashCode();
+    }
+    
+    @Override
+    public boolean equals(Object obj) {
+        if (obj == null) {
+            return false;
+        }
+        
+        if (!(obj instanceof User)) {
+            return false;
+        }
+        
+        User other = (User) obj;
+        
+        return other.getId() != null && this.getId() != null && other.getId().equals(this.getId());
+    }
 }

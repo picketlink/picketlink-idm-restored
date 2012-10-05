@@ -19,55 +19,32 @@
  * Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
  * 02110-1301 USA, or see the FSF site: http://www.fsf.org.
  */
-package org.picketlink.idm.model;
+
+package org.picketlink.test.idm.internal.file;
+
+import org.picketlink.idm.IdentityManager;
+import org.picketlink.idm.internal.DefaultIdentityManager;
+import org.picketlink.idm.internal.file.FileBasedIdentityStore;
 
 /**
- * A simple User implementation
+ * <p>
+ * Base class for testing the {@link FileBasedIdentityStore}.
+ * </p>
+ * 
+ * @author <a href="mailto:psilva@redhat.com">Pedro Silva</a>
+ * 
  */
-public class SimpleUser extends AbstractIdentityType implements User {
-    private String id;
-    private String firstName;
-    private String lastName;
-    private String email;
+public abstract class AbstractFileIdentityManagerTestCase {
 
-    public SimpleUser(String id) {
-        this.id = id;
+    private IdentityManager identityManager;
+
+    protected IdentityManager getIdentityManager() {
+        if (this.identityManager == null) {
+            FileBasedIdentityStore store = new FileBasedIdentityStore();
+            
+            this.identityManager = new DefaultIdentityManager(store);
+        }
+
+        return this.identityManager;
     }
-
-    public String getId() {
-        return id;
-    }
-
-    public String getFirstName() {
-        return firstName;
-    }
-
-    public void setFirstName(String firstName) {
-        this.firstName = firstName;
-    }
-
-    public String getLastName() {
-        return lastName;
-    }
-
-    public void setLastName(String lastName) {
-        this.lastName = lastName;
-    }
-
-    public String getFullName() {
-        return String.format("%s %s", firstName, lastName);
-    }
-
-    public String getEmail() {
-        return email;
-    }
-
-    public void setEmail(String email) {
-        this.email = email;
-    }
-
-    public String getKey() {
-        return String.format("%s%s", KEY_PREFIX, id);
-    }
-
 }

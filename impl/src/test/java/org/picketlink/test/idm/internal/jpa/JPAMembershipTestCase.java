@@ -21,16 +21,18 @@
  */
 package org.picketlink.test.idm.internal.jpa;
 
+import static junit.framework.Assert.assertTrue;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 
+import org.junit.Test;
+import org.picketlink.idm.IdentityManager;
 import org.picketlink.idm.internal.JPAIdentityStore;
 import org.picketlink.idm.model.Group;
 import org.picketlink.idm.model.Membership;
 import org.picketlink.idm.model.Role;
 import org.picketlink.idm.model.User;
 import org.picketlink.idm.spi.IdentityStore;
-import org.junit.Test;
 
 /**
  * <p>
@@ -50,15 +52,15 @@ public class JPAMembershipTestCase extends AbstractJPAIdentityManagerTestCase {
      */
     @Test
     public void testMembershipStore() throws Exception {
-        IdentityStore identityStore = createIdentityStore();
+        IdentityManager identityManager = getIdentityManager();
 
-        Role role = identityStore.createRole("admin");
-        User user = identityStore.createUser("asaldhan");
-        Group group = identityStore.createGroup("Administrators", null);
+        Role role = identityManager.createRole("admin");
+        User user = identityManager.createUser("asaldhan");
+        Group group = identityManager.createGroup("Administrators", (Group) null);
 
-        Membership membership = identityStore.createMembership(role, user, group);
+        identityManager.grantRole(role, user, group);
 
-        assertNotNull(membership);
+        assertTrue(identityManager.hasRole(role, user, group));
 
         testRemoveGroup();
     }
