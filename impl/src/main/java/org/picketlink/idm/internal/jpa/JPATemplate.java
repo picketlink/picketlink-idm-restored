@@ -47,7 +47,7 @@ public class JPATemplate {
      */
     public Object execute(JPACallback callback) {
         try {
-            return callback.execute(this.entityManager);
+            return callback.execute(getEntityManager());
         } catch (Exception e) {
             // TODO: how to handle exceptions
             // TODO: logging
@@ -57,6 +57,10 @@ public class JPATemplate {
 
     public void setEntityManager(EntityManager entityManager) {
         this.entityManager = entityManager;
+    }
+    
+    protected EntityManager getEntityManager() {
+        return this.entityManager;
     }
 
 }
