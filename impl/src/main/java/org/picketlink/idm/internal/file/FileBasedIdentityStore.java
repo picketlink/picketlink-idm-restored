@@ -28,6 +28,7 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
+import java.security.cert.CertificateEncodingException;
 import java.security.cert.X509Certificate;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -40,6 +41,7 @@ import java.util.Map.Entry;
 import java.util.Set;
 
 import org.picketlink.idm.internal.jpa.DefaultMembershipQuery;
+import org.picketlink.idm.internal.util.Base64;
 import org.picketlink.idm.model.Group;
 import org.picketlink.idm.model.IdentityType;
 import org.picketlink.idm.model.Membership;
@@ -65,6 +67,8 @@ import org.picketlink.idm.spi.IdentityStore;
 public class FileBasedIdentityStore implements IdentityStore {
 
     private static final String USER_PASSWORD_ATTRIBUTE = "userPassword";
+    private static final String USER_CERTIFICATE_ATTRIBUTE_NAME = "userCertificate";
+    
     private File usersFile;
     private File rolesFile = new File("/tmp/pl-idm-work/pl-idm-roles.db");
     private File groupsFile = new File("/tmp/pl-idm-work/pl-idm-groups.db");
@@ -326,16 +330,41 @@ public class FileBasedIdentityStore implements IdentityStore {
         storedUser.setAttribute(USER_PASSWORD_ATTRIBUTE, password);
     }
 
+    /* (non-Javadoc)
+     * @see org.picketlink.idm.spi.IdentityStore#validateCertificate(org.picketlink.idm.model.User, java.security.cert.X509Certificate)
+     */
     @Override
     public boolean validateCertificate(User user, X509Certificate certificate) {
-        // TODO Auto-generated method stub
-        return false;
+        User storedUser = getUser(user.getKey());
+        
+        if (storedUser == null) {
+            return false;
+        }
+
+        String encodedCertificate = storedUser.getAttribute(USER_CERTIFICATE_ATTRIBUTE_NAME);
+        
+        try {
+            return encodedCertificate != null && encodedCertificate.equals(new String(Base64.encodeBytes(certificate.getEncoded())));
+        } catch (CertificateEncodingException e) {
+            throw new RuntimeException("Error encoding certificate.", e);
+        }
     }
 
     @Override
     public boolean updateCertificate(User user, X509Certificate certificate) {
-        // TODO Auto-generated method stub
-        return false;
+        User storedUser = getUser(user.getKey());
+        
+        if (storedUser == null) {
+            return false;
+        }
+        
+        try {
+            storedUser.setAttribute(USER_CERTIFICATE_ATTRIBUTE_NAME, new String(Base64.encodeBytes(certificate.getEncoded())));
+        } catch (CertificateEncodingException e) {
+            throw new RuntimeException("Error encoding certificate.", e);
+        }
+        
+        return true;
     }
 
     /*

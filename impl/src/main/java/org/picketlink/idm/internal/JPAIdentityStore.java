@@ -21,6 +21,7 @@
  */
 package org.picketlink.idm.internal;
 
+import java.security.cert.CertificateEncodingException;
 import java.security.cert.X509Certificate;
 import java.util.ArrayList;
 import java.util.List;
@@ -48,6 +49,7 @@ import org.picketlink.idm.internal.jpa.DefaultMembershipQuery;
 import org.picketlink.idm.internal.jpa.JPACallback;
 import org.picketlink.idm.internal.jpa.JPATemplate;
 import org.picketlink.idm.internal.jpa.NamedQueries;
+import org.picketlink.idm.internal.util.Base64;
 import org.picketlink.idm.model.Group;
 import org.picketlink.idm.model.IdentityType;
 import org.picketlink.idm.model.Membership;
@@ -69,7 +71,8 @@ import org.picketlink.idm.spi.IdentityStore;
  */
 public class JPAIdentityStore implements IdentityStore {
 
-    private static final String PASSWORD_ATTRIBUTE_NAME = "password";
+    private static final String USER_CERTIFICATE_ATTRIBUTE_NAME = "userCertificate";
+    private static final String USER_PASSWORD_ATTRIBUTE_NAME = "password";
     private JPATemplate jpaTemplate;
 
     /*
@@ -643,7 +646,7 @@ public class JPAIdentityStore implements IdentityStore {
      */
     @Override
     public boolean validatePassword(User user, String password) {
-        String userPasswd = user.getAttribute(PASSWORD_ATTRIBUTE_NAME);
+        String userPasswd = user.getAttribute(USER_PASSWORD_ATTRIBUTE_NAME);
 
         return userPasswd != null && password != null && password.equals(userPasswd);
     }
@@ -655,17 +658,47 @@ public class JPAIdentityStore implements IdentityStore {
      */
     @Override
     public void updatePassword(User user, String password) {
-        user.setAttribute(PASSWORD_ATTRIBUTE_NAME, password);
+        user.setAttribute(USER_PASSWORD_ATTRIBUTE_NAME, password);
     }
 
+    /* (non-Javadoc)
+     * @see org.picketlink.idm.spi.IdentityStore#validateCertificate(org.picketlink.idm.model.User, java.security.cert.X509Certificate)
+     */
     @Override
     public boolean validateCertificate(User user, X509Certificate certificate) {
-        return false;
+        User storedUser = getUser(user.getKey());
+        
+        if (storedUser == null) {
+            return false;
+        }
+
+        String encodedCertificate = storedUser.getAttribute(USER_CERTIFICATE_ATTRIBUTE_NAME);
+        
+        try {
+            return encodedCertificate != null && encodedCertificate.equals(new String(Base64.encodeBytes(certificate.getEncoded())));
+        } catch (CertificateEncodingException e) {
+            throw new RuntimeException("Error encoding certificate.", e);
+        }
     }
 
+    /* (non-Javadoc)
+     * @see org.picketlink.idm.spi.IdentityStore#updateCertificate(org.picketlink.idm.model.User, java.security.cert.X509Certificate)
+     */
     @Override
     public boolean updateCertificate(User user, X509Certificate certificate) {
-        return false;
+        User storedUser = getUser(user.getKey());
+        
+        if (storedUser == null) {
+            return false;
+        }
+        
+        try {
+            storedUser.setAttribute(USER_CERTIFICATE_ATTRIBUTE_NAME, new String(Base64.encodeBytes(certificate.getEncoded())));
+        } catch (CertificateEncodingException e) {
+            throw new RuntimeException("Error encoding certificate.", e);
+        }
+        
+        return true;
     }
 
     /* (non-Javadoc)
@@ -673,7 +706,7 @@ public class JPAIdentityStore implements IdentityStore {
      */
     @Override
     public boolean validatePassword(User user, PasswordValidator passwordValidator) {
-        String userPasswd = user.getAttribute(PASSWORD_ATTRIBUTE_NAME);
+        String userPasswd = user.getAttribute(USER_PASSWORD_ATTRIBUTE_NAME);
         return passwordValidator.validate(userPasswd);
     }
 
