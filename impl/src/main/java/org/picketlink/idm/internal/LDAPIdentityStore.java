@@ -347,24 +347,46 @@ public class LDAPIdentityStore implements IdentityStore, LDAPChangeNotificationH
      */
     @Override
     public Membership createMembership(Role role, User user, Group group) {
-        final LDAPRole ldapRole = (LDAPRole) getRole(role.getName());
-        final LDAPUser ldapUser = (LDAPUser) getUser(user.getId());
-        final LDAPGroup ldapGroup = (LDAPGroup) getGroup(group.getName());
-
-        ldapRole.addUser(ldapUser);
-        ldapGroup.addRole(ldapRole);
-        ldapGroup.addUser(ldapUser);
-
-        try {
-            ctx.modifyAttributes(ldapRole.getDN(), ctx.REPLACE_ATTRIBUTE, ldapRole.getAttributes(MEMBER));
-        } catch (NamingException e) {
-            throw new RuntimeException("Error while modifying members of role [" + ldapRole.getName() + "].", e);
+        LDAPRole ldapRole = null;
+        
+        if (role != null) {
+            ldapRole = (LDAPRole) getRole(role.getName());
+        }
+        
+        LDAPUser ldapUser = null;
+        
+        if (user != null) {
+            ldapUser = (LDAPUser) getUser(user.getId());
+        }
+        
+        LDAPGroup ldapGroup = null;
+        
+        if (group != null) {
+            ldapGroup = (LDAPGroup) getGroup(group.getName());
         }
 
-        try {
-            ctx.modifyAttributes(ldapGroup.getDN(), ctx.REPLACE_ATTRIBUTE, ldapGroup.getAttributes(MEMBER));
-        } catch (NamingException e) {
-            throw new RuntimeException("Error while modifying members of group [" + ldapGroup.getName() + "].", e);
+        if (ldapUser != null && ldapRole != null) {
+            ldapRole.addUser(ldapUser);
+            
+            try {
+                ctx.modifyAttributes(ldapRole.getDN(), ctx.REPLACE_ATTRIBUTE, ldapRole.getAttributes(MEMBER));
+            } catch (NamingException e) {
+                throw new RuntimeException("Error while modifying members of role [" + ldapRole.getName() + "].", e);
+            }
+        }
+        
+        if (ldapGroup != null && ldapRole != null) {
+            ldapGroup.addRole(ldapRole);    
+        }
+        
+        if (ldapGroup != null && ldapUser != null) {
+            ldapGroup.addUser(ldapUser);
+            
+            try {
+                ctx.modifyAttributes(ldapGroup.getDN(), ctx.REPLACE_ATTRIBUTE, ldapGroup.getAttributes(MEMBER));
+            } catch (NamingException e) {
+                throw new RuntimeException("Error while modifying members of group [" + ldapGroup.getName() + "].", e);
+            }
         }
 
         return new DefaultMembership(ldapUser, ldapRole, ldapGroup);
